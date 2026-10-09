@@ -1,0 +1,29 @@
+{
+  "name": "nine-under",
+  "version-string": "0.1.0",
+  "description": "Nine Under — 3D action-roguelite (custom C++ / Vulkan engine)",
+  "dependencies": [
+    "sdl3",
+    "volk",
+    "vulkan-memory-allocator",
+    "vk-bootstrap",
+    "glm",
+    "entt",
+    "fastgltf",
+    "ktx",
+    "stb",
+    "meshoptimizer",
+    "joltphysics",
+    "miniaudio",
+    {
+      "name": "imgui",
+      "features": ["docking-experimental", "sdl3-binding", "vulkan-binding"]
+    },
+    {
+      "name": "tracy",
+      "features": ["crash-handler"]
+    },
+    "spdlog",
+    "doctest"
+  ]
+}

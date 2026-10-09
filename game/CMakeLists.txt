@@ -15,3 +15,5 @@ set_target_properties(NineUnder PROPERTIES
     VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:NineUnder>"
     OUTPUT_NAME "NineUnder"
 )
+
+nu_stage_runtime_data(NineUnder)

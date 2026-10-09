@@ -34,11 +34,10 @@ void Application::initSystems() {
     window_ = std::make_unique<Window>(winDesc);
     input_ = std::make_unique<Input>();
 
-    char* basePath = SDL_GetBasePath();
-    const std::filesystem::path exeDir = basePath ? std::filesystem::path(basePath) : std::filesystem::current_path();
-    if (basePath) {
-        SDL_free(basePath);
-    }
+    const char* basePath = SDL_GetBasePath();
+    const std::filesystem::path exeDir =
+        basePath ? std::filesystem::path(basePath) : std::filesystem::current_path();
+    // SDL3: SDL_GetBasePath() returns an internal string; do not free.
     Paths::init(exeDir);
 
     renderer_ = std::make_unique<Renderer>();

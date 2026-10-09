@@ -58,9 +58,11 @@ find_package(fastgltf CONFIG REQUIRED)
 find_package(Ktx CONFIG REQUIRED)
 find_package(meshoptimizer CONFIG REQUIRED)
 find_package(Jolt CONFIG REQUIRED)
-find_package(miniaudio CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+
+# miniaudio is header-only in current vcpkg (no CONFIG package)
+find_path(MINIAUDIO_INCLUDE_DIRS "miniaudio.h" REQUIRED)
 
 # stb (vcpkg port names vary)
 find_path(STB_INCLUDE_DIRS "stb_image.h" HINTS ${Stb_INCLUDE_DIR})
@@ -89,20 +91,6 @@ set(NU_SHADER_SOURCE_DIR "${CMAKE_SOURCE_DIR}/shaders")
 set(NU_ASSET_SOURCE_DIR "${CMAKE_SOURCE_DIR}/assets")
 
 # ---------------------------------------------------------------------------
-# Subdirs
-# ---------------------------------------------------------------------------
-add_subdirectory(engine)
-add_subdirectory(game)
-
-if(NU_BUILD_TOOLS)
-    add_subdirectory(tools)
-endif()
-
-if(NU_BUILD_TESTS)
-    add_subdirectory(tests)
-endif()
-
-# ---------------------------------------------------------------------------
 # Copy / stage runtime data next to the game binary
 # ---------------------------------------------------------------------------
 function(nu_stage_runtime_data target_name)
@@ -115,11 +103,25 @@ function(nu_stage_runtime_data target_name)
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${NU_SHADER_SOURCE_DIR}
             $<TARGET_FILE_DIR:${target_name}>/shaders
+        # Use the system Vulkan loader; vcpkg's applocal copy can break ICD discovery.
+        COMMAND ${CMAKE_COMMAND} -E rm -f $<TARGET_FILE_DIR:${target_name}>/vulkan-1.dll
         COMMENT "Staging assets and shaders for ${target_name}"
     )
 endfunction()
 
-nu_stage_runtime_data(NineUnder)
+# ---------------------------------------------------------------------------
+# Subdirs
+# ---------------------------------------------------------------------------
+add_subdirectory(engine)
+add_subdirectory(game)
+
+if(NU_BUILD_TOOLS)
+    add_subdirectory(tools)
+endif()
+
+if(NU_BUILD_TESTS)
+    add_subdirectory(tests)
+endif()
 
 message(STATUS "Nine Under ${PROJECT_VERSION}")
 message(STATUS "  Validation : ${NU_ENABLE_VALIDATION}")

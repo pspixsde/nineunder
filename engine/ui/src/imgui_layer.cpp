@@ -54,25 +54,50 @@ void ImGuiLayer::init(SDL_Window* window, Renderer& renderer) {
 
     ImGui_ImplSDL3_InitForVulkan(window);
 
+    // imgui + volk: load Vulkan entry points through the instance/device procs.
+    VkInstance instance = renderer.device().instance();
+    VkDevice device = renderer.device().device();
+    struct LoaderCtx {
+        VkInstance instance;
+        VkDevice device;
+    } loaderCtx{instance, device};
+    if (!ImGui_ImplVulkan_LoadFunctions(
+            VK_API_VERSION_1_3,
+            [](const char* name, void* user) -> PFN_vkVoidFunction {
+                const auto* ctx = static_cast<const LoaderCtx*>(user);
+                if (ctx->device != VK_NULL_HANDLE) {
+                    if (PFN_vkVoidFunction fn = reinterpret_cast<PFN_vkVoidFunction>(
+                            vkGetDeviceProcAddr(ctx->device, name))) {
+                        return fn;
+                    }
+                }
+                return reinterpret_cast<PFN_vkVoidFunction>(vkGetInstanceProcAddr(ctx->instance, name));
+            },
+            &loaderCtx)) {
+        throw std::runtime_error("ImGui_ImplVulkan_LoadFunctions failed");
+    }
+
     ImGui_ImplVulkan_InitInfo initInfo{};
-    initInfo.Instance = renderer.device().instance();
+    initInfo.ApiVersion = VK_API_VERSION_1_3;
+    initInfo.Instance = instance;
     initInfo.PhysicalDevice = renderer.device().physicalDevice();
-    initInfo.Device = renderer.device().device();
+    initInfo.Device = device;
     initInfo.QueueFamily = renderer.device().graphicsQueueFamily();
     initInfo.Queue = renderer.device().graphicsQueue();
     initInfo.DescriptorPool = imguiPool_;
     initInfo.MinImageCount = 2;
     initInfo.ImageCount = std::max(2u, renderer.imageCount());
-    initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+    initInfo.PipelineInfoMain.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
     initInfo.CheckVkResultFn = checkVk;
 
-#if defined(IMGUI_IMPL_VULKAN_HAS_DYNAMIC_RENDERING) || (IMGUI_VERSION_NUM >= 18990)
+#if defined(IMGUI_IMPL_VULKAN_HAS_DYNAMIC_RENDERING)
     initInfo.UseDynamicRendering = true;
     VkFormat colorFormat = renderer.swapchainFormat();
-    initInfo.PipelineRenderingCreateInfo = {};
-    initInfo.PipelineRenderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
-    initInfo.PipelineRenderingCreateInfo.colorAttachmentCount = 1;
-    initInfo.PipelineRenderingCreateInfo.pColorAttachmentFormats = &colorFormat;
+    initInfo.PipelineInfoMain.PipelineRenderingCreateInfo = {};
+    initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.sType =
+        VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+    initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.colorAttachmentCount = 1;
+    initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.pColorAttachmentFormats = &colorFormat;
 #endif
 
     if (!ImGui_ImplVulkan_Init(&initInfo)) {

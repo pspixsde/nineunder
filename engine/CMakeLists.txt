@@ -59,6 +59,7 @@ target_include_directories(nu_engine
     PUBLIC
         ${NU_ENGINE_PUBLIC_INCLUDES}
         ${STB_INCLUDE_DIRS}
+        ${MINIAUDIO_INCLUDE_DIRS}
 )
 
 # Normalize package imported-target names across vcpkg versions
@@ -68,14 +69,6 @@ elseif(TARGET unofficial::vulkan-memory-allocator)
     set(NU_VMA_TARGET unofficial::vulkan-memory-allocator)
 else()
     set(NU_VMA_TARGET VulkanMemoryAllocator)
-endif()
-
-if(TARGET miniaudio::miniaudio)
-    set(NU_MINIAUDIO_TARGET miniaudio::miniaudio)
-elseif(TARGET unofficial::miniaudio)
-    set(NU_MINIAUDIO_TARGET unofficial::miniaudio)
-else()
-    set(NU_MINIAUDIO_TARGET miniaudio)
 endif()
 
 target_link_libraries(nu_engine
@@ -90,7 +83,6 @@ target_link_libraries(nu_engine
         KTX::ktx
         meshoptimizer::meshoptimizer
         Jolt::Jolt
-        ${NU_MINIAUDIO_TARGET}
         imgui::imgui
         spdlog::spdlog
         Vulkan::Vulkan

@@ -11,46 +11,44 @@ Engine architecture is described in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.m
 
 | Tool | Notes |
 |------|-------|
-| **Visual Studio 2022** | Desktop development with C++ workload (MSVC + Windows SDK) |
-| **CMake** ≥ 3.28 | With Ninja generator recommended |
-| **Ninja** | Install via `winget install Ninja-build.Ninja` or VS installer |
-| **Vulkan SDK** ≥ 1.3 | [LunarG](https://vulkan.lunarg.com/) — validation layers + tools |
-| **vcpkg** | Clone once; set `VCPKG_ROOT` (see below) |
-| **Git LFS** | `git lfs install` for binary assets |
-| **Slang** (optional) | Shader compiler; also available via vcpkg `shader-slang` |
+| **Visual Studio 2022** (or Build Tools) | **MSVC + Windows SDK** — required. LLVM/MinGW alone is not enough for the `x64-windows` vcpkg triplet |
+| **CMake** ≥ 3.28 | |
+| **Ninja** | `winget install Ninja-build.Ninja` |
+| **Vulkan SDK** ≥ 1.3 | `winget install KhronosGroup.VulkanSDK` |
+| **vcpkg** | Set `VCPKG_ROOT` (bootstrap clones to `C:\dev\vcpkg`) |
+| **Git LFS** | `git lfs install` |
 
 ## Bootstrap
 
 ```powershell
-# Helper (Git LFS + optional vcpkg clone)
 .\scripts\bootstrap.ps1
+```
 
-# Or manually:
-git lfs install
-git clone https://github.com/microsoft/vcpkg.git C:\dev\vcpkg
-C:\dev\vcpkg\bootstrap-vcpkg.bat
+That script clones vcpkg if needed and checks for MSVC / Ninja / Vulkan.
+
+If MSVC is missing:
+
+```powershell
+winget install Microsoft.VisualStudio.2022.BuildTools --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
+```
+
+Then open **x64 Native Tools Command Prompt for VS 2022** (or VS Developer PowerShell) so `cl.exe` is on `PATH`.
+
+```powershell
+# Permanent env (System Properties → Environment Variables), or per session:
 $env:VCPKG_ROOT = "C:\dev\vcpkg"
 ```
 
-Install the [Vulkan SDK](https://vulkan.lunarg.com/) (or `winget install KhronosGroup.VulkanSDK`)
-and ensure `VULKAN_SDK` is set. Add `VCPKG_ROOT` permanently via System Environment Variables.
-
-Prebuilt SPIR-V for the mesh pass lives in `shaders/*.spv`. To rebuild:
-
-```powershell
-.\tools\compile_shaders.ps1
-```
+Prebuilt SPIR-V lives in `shaders/*.spv`. Rebuild with `.\tools\compile_shaders.ps1`.
 
 ## Build
 
+Run from a **VS x64 developer shell**:
+
 ```powershell
-# Configure (dev = optimized + asserts + Vulkan validation)
+$env:VCPKG_ROOT = "C:\dev\vcpkg"   # if not set permanently
 cmake --preset dev
-
-# Build
 cmake --build --preset dev
-
-# Run
 .\build\dev\game\NineUnder.exe
 ```
 

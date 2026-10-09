@@ -3,7 +3,10 @@
   "version-string": "0.1.0",
   "description": "Nine Under — 3D action-roguelite (custom C++ / Vulkan engine)",
   "dependencies": [
-    "sdl3",
+    {
+      "name": "sdl3",
+      "features": ["vulkan"]
+    },
     "volk",
     "vulkan-memory-allocator",
     "vk-bootstrap",

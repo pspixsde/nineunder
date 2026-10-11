@@ -54,6 +54,7 @@ protected:
     Camera& camera() { return camera_; }
     ImGuiLayer& imgui() { return *imgui_; }
     AudioEngine& audio() { return *audio_; }
+    [[nodiscard]] float fps() const { return clock_.fps(); }
 
     bool freeCameraMode_ = false;
     /// When false, character/camera gameplay input is skipped (e.g. main menu).

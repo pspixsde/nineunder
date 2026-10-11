@@ -26,6 +26,8 @@ public:
     /// wishDir is XZ movement in world space (already camera-relative), jump edge-triggered.
     void update(float dt, const Vec3& wishDir, bool jump);
 
+    void setPosition(const Vec3& position);
+
     [[nodiscard]] Vec3 position() const;
     [[nodiscard]] Vec3 velocity() const;
     [[nodiscard]] bool onGround() const;

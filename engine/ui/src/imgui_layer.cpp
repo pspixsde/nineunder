@@ -61,17 +61,21 @@ void ImGuiLayer::init(SDL_Window* window, Renderer& renderer) {
         VkInstance instance;
         VkDevice device;
     } loaderCtx{instance, device};
+    // Prefer instance proc addr first: many Vulkan entry points ImGui loads are
+    // instance-level (surface / physical-device queries). Asking the device for
+    // those triggers VALIDATION-vkGetDeviceProcAddr-device warnings.
     if (!ImGui_ImplVulkan_LoadFunctions(
             VK_API_VERSION_1_3,
             [](const char* name, void* user) -> PFN_vkVoidFunction {
                 const auto* ctx = static_cast<const LoaderCtx*>(user);
-                if (ctx->device != VK_NULL_HANDLE) {
-                    if (PFN_vkVoidFunction fn = reinterpret_cast<PFN_vkVoidFunction>(
-                            vkGetDeviceProcAddr(ctx->device, name))) {
-                        return fn;
-                    }
+                if (PFN_vkVoidFunction fn = reinterpret_cast<PFN_vkVoidFunction>(
+                        vkGetInstanceProcAddr(ctx->instance, name))) {
+                    return fn;
                 }
-                return reinterpret_cast<PFN_vkVoidFunction>(vkGetInstanceProcAddr(ctx->instance, name));
+                if (ctx->device != VK_NULL_HANDLE) {
+                    return reinterpret_cast<PFN_vkVoidFunction>(vkGetDeviceProcAddr(ctx->device, name));
+                }
+                return nullptr;
             },
             &loaderCtx)) {
         throw std::runtime_error("ImGui_ImplVulkan_LoadFunctions failed");

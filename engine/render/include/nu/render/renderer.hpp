@@ -44,6 +44,8 @@ public:
     void init(SDL_Window* window, uint32_t width, uint32_t height);
     void shutdown();
     void resize(uint32_t width, uint32_t height);
+    /// Block until the GPU finishes all submitted work (safe to destroy GPU resources).
+    void waitIdle();
 
     void beginFrame();
     void drawScene(const Camera& camera, const RenderScene& scene);
@@ -76,7 +78,6 @@ private:
     struct FrameData {
         VkCommandBuffer cmd = VK_NULL_HANDLE;
         VkSemaphore imageAvailable = VK_NULL_HANDLE;
-        VkSemaphore renderFinished = VK_NULL_HANDLE;
         VkFence inFlight = VK_NULL_HANDLE;
         AllocatedBuffer frameUbo{};
     };
@@ -87,6 +88,8 @@ private:
     void destroyDepth();
     void createFrameResources();
     void destroyFrameResources();
+    void createSwapchainSync();
+    void destroySwapchainSync();
     void createMaterialResources();
     void destroyMaterialResources();
     bool ensureShaders();
@@ -113,6 +116,10 @@ private:
     AllocatedImage depthImage_{};
     VkExtent2D extent_{};
     std::array<FrameData, kFramesInFlight> frames_{};
+    /// One render-finished semaphore per swapchain image (present may still hold it).
+    std::vector<VkSemaphore> renderFinished_;
+    /// Fence currently using each swapchain image (or VK_NULL_HANDLE).
+    std::vector<VkFence> imagesInFlight_;
     uint32_t frameIndex_ = 0;
     uint32_t imageIndex_ = 0;
     bool ready_ = false;

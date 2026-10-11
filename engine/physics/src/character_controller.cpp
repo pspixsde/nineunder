@@ -123,6 +123,15 @@ void CharacterController::update(float dt, const Vec3& wishDir, bool jump) {
     }
 }
 
+void CharacterController::setPosition(const Vec3& position) {
+    impl_->velocity = {};
+    impl_->desc.initialPosition = position;
+    if (impl_->character) {
+        impl_->character->SetPosition(JPH::RVec3(position.x, position.y, position.z));
+        impl_->character->SetLinearVelocity(JPH::Vec3::sZero());
+    }
+}
+
 Vec3 CharacterController::position() const {
     if (impl_->character) {
         const JPH::RVec3 p = impl_->character->GetPosition();

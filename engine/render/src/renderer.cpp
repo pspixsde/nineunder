@@ -49,6 +49,7 @@ void Renderer::init(SDL_Window* window, uint32_t width, uint32_t height) {
 
     createDepth();
     createFrameResources();
+    createSwapchainSync();
     createMaterialResources();
     if (!ensureShaders()) {
         throw std::runtime_error("Failed to load mesh shaders (expected shaders/mesh.vert.spv and mesh.frag.spv)");
@@ -58,15 +59,20 @@ void Renderer::init(SDL_Window* window, uint32_t width, uint32_t height) {
     NU_LOG_INFO("Renderer initialized");
 }
 
+void Renderer::waitIdle() {
+    if (device_.device()) {
+        vkDeviceWaitIdle(device_.device());
+    }
+}
+
 void Renderer::shutdown() {
     if (!ready_ && !device_.device()) {
         return;
     }
-    if (device_.device()) {
-        vkDeviceWaitIdle(device_.device());
-    }
+    waitIdle();
     destroyPipelines();
     destroyMaterialResources();
+    destroySwapchainSync();
     destroyFrameResources();
     destroyDepth();
     shaders_.shutdown();
@@ -126,7 +132,6 @@ void Renderer::createFrameResources() {
 
         VkSemaphoreCreateInfo semInfo{VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
         vkCreateSemaphore(device_.device(), &semInfo, nullptr, &frames_[i].imageAvailable);
-        vkCreateSemaphore(device_.device(), &semInfo, nullptr, &frames_[i].renderFinished);
 
         VkFenceCreateInfo fenceInfo{VK_STRUCTURE_TYPE_FENCE_CREATE_INFO};
         fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
@@ -167,9 +172,6 @@ void Renderer::destroyFrameResources() {
         if (frame.imageAvailable) {
             vkDestroySemaphore(device_.device(), frame.imageAvailable, nullptr);
         }
-        if (frame.renderFinished) {
-            vkDestroySemaphore(device_.device(), frame.renderFinished, nullptr);
-        }
         if (frame.inFlight) {
             vkDestroyFence(device_.device(), frame.inFlight, nullptr);
         }
@@ -184,6 +186,28 @@ void Renderer::destroyFrameResources() {
         vkDestroyDescriptorSetLayout(device_.device(), frameSetLayout_, nullptr);
         frameSetLayout_ = VK_NULL_HANDLE;
     }
+}
+
+void Renderer::createSwapchainSync() {
+    destroySwapchainSync();
+    const size_t imageCount = swapchain_.images().size();
+    renderFinished_.resize(imageCount, VK_NULL_HANDLE);
+    imagesInFlight_.assign(imageCount, VK_NULL_HANDLE);
+
+    VkSemaphoreCreateInfo semInfo{VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
+    for (VkSemaphore& sem : renderFinished_) {
+        vkCreateSemaphore(device_.device(), &semInfo, nullptr, &sem);
+    }
+}
+
+void Renderer::destroySwapchainSync() {
+    for (VkSemaphore sem : renderFinished_) {
+        if (sem) {
+            vkDestroySemaphore(device_.device(), sem, nullptr);
+        }
+    }
+    renderFinished_.clear();
+    imagesInFlight_.clear();
 }
 
 namespace {
@@ -445,6 +469,7 @@ void Renderer::beginFrame() {
         vkDeviceWaitIdle(device_.device());
         swapchain_.resize(extent_.width, extent_.height);
         createDepth();
+        createSwapchainSync();
         framebufferResized_ = false;
     }
 
@@ -458,6 +483,15 @@ void Renderer::beginFrame() {
         return;
     }
     imageIndex_ = *image;
+
+    // Wait if a previous frame is still presenting this swapchain image.
+    if (imageIndex_ < imagesInFlight_.size() && imagesInFlight_[imageIndex_] != VK_NULL_HANDLE) {
+        vkWaitForFences(device_.device(), 1, &imagesInFlight_[imageIndex_], VK_TRUE, UINT64_MAX);
+    }
+    if (imageIndex_ < imagesInFlight_.size()) {
+        imagesInFlight_[imageIndex_] = frame.inFlight;
+    }
+
     vkResetFences(device_.device(), 1, &frame.inFlight);
     vkResetCommandBuffer(frame.cmd, 0);
 
@@ -607,8 +641,9 @@ void Renderer::endFrame(const std::function<void(VkCommandBuffer)>& imguiDraw) {
     waitInfo.semaphore = frame.imageAvailable;
     waitInfo.stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
 
+    VkSemaphore renderFinished = renderFinished_[imageIndex_];
     VkSemaphoreSubmitInfo signalInfo{VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO};
-    signalInfo.semaphore = frame.renderFinished;
+    signalInfo.semaphore = renderFinished;
     signalInfo.stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
 
     VkSubmitInfo2 submit{VK_STRUCTURE_TYPE_SUBMIT_INFO_2};
@@ -621,8 +656,7 @@ void Renderer::endFrame(const std::function<void(VkCommandBuffer)>& imguiDraw) {
 
     vkQueueSubmit2(device_.graphicsQueue(), 1, &submit, frame.inFlight);
 
-    const VkResult presentResult =
-        swapchain_.present(device_.graphicsQueue(), imageIndex_, frame.renderFinished);
+    const VkResult presentResult = swapchain_.present(device_.graphicsQueue(), imageIndex_, renderFinished);
     if (presentResult == VK_ERROR_OUT_OF_DATE_KHR || presentResult == VK_SUBOPTIMAL_KHR) {
         framebufferResized_ = true;
     }

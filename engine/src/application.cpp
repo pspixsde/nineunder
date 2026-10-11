@@ -71,6 +71,10 @@ void Application::initSystems() {
 }
 
 void Application::shutdownSystems() {
+    // Finish GPU work before game/engine tear down frees meshes, descriptors, etc.
+    if (renderer_) {
+        renderer_->waitIdle();
+    }
     onShutdown();
     if (imgui_) {
         imgui_->shutdown();

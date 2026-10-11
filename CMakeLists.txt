@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 
 project(NineUnder
-    VERSION 0.1.1
+    VERSION 0.3.0
     DESCRIPTION "Nine Under — 3D action-roguelite"
     LANGUAGES CXX C
 )

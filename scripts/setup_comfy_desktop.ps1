@@ -73,11 +73,12 @@ Write-Host "  - RemoveBackground / LoadBackgroundRemovalModel available for clea
 
 Write-Host ""
 Write-Host "Recommended FREE canvas path (see docs/HOWTO_3D_PIPELINE.md):" -ForegroundColor Yellow
-Write-Host "  1. Text->image: your 'Nine Under v1' graph (SD1.5 or SDXL)"
-Write-Host "  2. Image->3D: Workflow template 'Pixal3D & TRELLIS.2' (local, free)"
+Write-Host "  1. Text->image: saved workflow 'Nine Under - Text to Image v1'"
+Write-Host "  2. Image->3D: saved workflow 'Nine Under - Image to 3D v1' (Pixal3D OK)"
 Write-Host "     Skip Comfy 'Tripo: Image to Model' - that is paid cloud credits"
 Write-Host "  3. Copy GLB from Shared\output into assets\source\...\raw\selected.glb"
-Write-Host "     then polish/export in Blender UI"
+Write-Host "     then Blender polish (selective Decimate) — HOWTO Part C"
+Write-Host "  4. Optional agent control: docs/MCP_SETUP.md (Comfy + Blender MCP)"
 
 # ---------------------------------------------------------------------------
 # nu-content ping

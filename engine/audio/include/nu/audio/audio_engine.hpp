@@ -20,12 +20,16 @@ public:
     /// Release finished one-shot sounds (call once per frame while audio is used).
     void update();
 
+    void setMasterVolume(float volume);
+    [[nodiscard]] float masterVolume() const { return masterVolume_; }
+
     [[nodiscard]] bool ready() const { return ready_; }
 
 private:
     struct Impl;
     Impl* impl_ = nullptr;
     bool ready_ = false;
+    float masterVolume_ = 1.0f;
 };
 
 } // namespace nu

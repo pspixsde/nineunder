@@ -1,0 +1,34 @@
+{
+  "_meta": {
+    "title": "Nine Under — TripoSR image-to-3D v1 (blockouts)",
+    "notes": "Fast low-quality meshes for graybox. Placeholders: {{IMAGE}} {{SEED}} {{ASSET_ID}}"
+  },
+  "1": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "{{IMAGE}}"
+    }
+  },
+  "2": {
+    "class_type": "TripoSRModelLoader",
+    "inputs": {
+      "model": "model.ckpt"
+    }
+  },
+  "3": {
+    "class_type": "TripoSRSampler",
+    "inputs": {
+      "model": ["2", 0],
+      "image": ["1", 0],
+      "chunk_size": 8192,
+      "mc_resolution": 256
+    }
+  },
+  "4": {
+    "class_type": "SaveGLB",
+    "inputs": {
+      "mesh": ["3", 0],
+      "filename_prefix": "nu_{{ASSET_ID}}_triposr"
+    }
+  }
+}

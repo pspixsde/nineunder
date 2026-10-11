@@ -4,7 +4,9 @@
 #include "nu/assets/asset_hot_reload.hpp"
 #include "nu/assets/model_asset.hpp"
 #include "nu/render/mesh.hpp"
+#include "nu/render/vulkan_device.hpp"
 
+#include <array>
 #include <optional>
 #include <random>
 #include <vector>
@@ -15,7 +17,14 @@ enum class AppScreen {
     MainMenu,
     Playing,
     Paused,
-    Death
+    Death,
+    Settings
+};
+
+enum class SettingsTab {
+    General,
+    Audio,
+    Credits
 };
 
 enum class ProjectileOwner {
@@ -40,7 +49,10 @@ struct ImpEnemy {
     float attackCooldown = 0.0f;
     float roamRetargetTimer = 0.0f;
     float noticeTimer = 0.0f;
+    float scorchDpsAccum = 0.0f;
+    float burnDpsAccum = 0.0f;
     ImpAiState ai = ImpAiState::Roam;
+    std::vector<float> burnStacks{};
 };
 
 struct Projectile {
@@ -52,6 +64,13 @@ struct Projectile {
     float gravity = 0.0f;
     ProjectileOwner owner = ProjectileOwner::Player;
     float trailEmitTimer = 0.0f;
+    bool appliesBurn = false;
+};
+
+struct ScorchZone {
+    nu::Vec3 position{};
+    float radius = 1.1f;
+    float remaining = 3.0f;
 };
 
 struct TrailParticle {
@@ -85,8 +104,31 @@ struct PlayerCombat {
     float reloadTimer = 0.0f;
     float reloadDuration = 1.75f;
     bool reloading = false;
+
     float meleeCooldown = 0.0f;
     float meleeCooldownDuration = 3.0f;
+    float dashCooldown = 0.0f;
+    float dashCooldownDuration = 6.0f;
+    float barrierCooldown = 0.0f;
+    float barrierCooldownDuration = 16.0f;
+    float barrierTimer = 0.0f;
+    float barrierHp = 0.0f;
+    float ultCooldown = 0.0f;
+    float ultCooldownDuration = 45.0f;
+    float ultTimer = 0.0f;
+
+    float damageFlash = 0.0f;
+};
+
+struct GameSettings {
+    float mouseSensitivity = 1.0f;
+    bool showDamageNumbers = true;
+    float masterVolume = 1.0f;
+};
+
+struct UiIcon {
+    nu::AllocatedImage image{};
+    VkDescriptorSet descriptor = VK_NULL_HANDLE;
 };
 
 class GameApp final : public nu::Application {
@@ -105,6 +147,11 @@ private:
     void buildArenaOne();
     void tryLoadUrns();
     void setupHotReload();
+    void loadAbilityIcons();
+    void destroyAbilityIcons();
+    void applySettings();
+    void openSettings(AppScreen returnScreen);
+    void closeSettings();
     void enterMainMenu();
     void startPlay();
     void pauseGame();
@@ -116,17 +163,23 @@ private:
     void pickImpRoamTarget();
     void tryFireProjectile();
     void tryMeleeAttack();
+    void tryDash();
+    void tryBarrier();
+    void tryUltimate();
     void updateCombat(float dt);
     void updateImpAi(float dt);
     void updateProjectiles(float dt);
+    void updateZonesAndBurns(float dt);
     void updateVfx(float dt);
     void updateDamageNumbers(float dt);
-    void damageImp(float amount, const nu::Vec3& hitPos);
+    void damageImp(float amount, const nu::Vec3& hitPos, bool applyBurn = false);
     void damagePlayer(float amount, const nu::Vec3& hitPos);
     void spawnImpSpit();
+    void spawnDamageNumber(const nu::Vec3& worldPos, float amount);
     void drawMainMenu();
     void drawPauseMenu();
     void drawDeathMenu();
+    void drawSettingsMenu();
     void drawGameplayHud();
     void drawFpsCounter();
     void drawPlayerHpBar();
@@ -135,11 +188,23 @@ private:
     void drawCrosshair();
     void drawImpHpBar();
     void drawDamageNumbers();
+    void drawDamageVignette();
+    void drawBarrierAura(nu::RenderScene& scene);
+    void drawScorchZones(nu::RenderScene& scene);
 
     [[nodiscard]] bool isSimulating() const;
+    [[nodiscard]] bool barrierActive() const;
+    [[nodiscard]] bool ultActive() const;
+    [[nodiscard]] float currentFireInterval() const;
+    [[nodiscard]] float currentReloadDuration() const;
+    [[nodiscard]] float currentFireDamage() const;
+    [[nodiscard]] float impMoveMultiplier() const;
     [[nodiscard]] nu::Vec3 playerFlatForward();
 
     AppScreen screen_ = AppScreen::MainMenu;
+    AppScreen settingsReturn_ = AppScreen::MainMenu;
+    SettingsTab settingsTab_ = SettingsTab::General;
+    GameSettings settings_{};
 
     nu::GpuMesh floorMesh_{};
     nu::GpuMesh cubeMesh_{};
@@ -154,9 +219,12 @@ private:
     std::vector<nu::Mat4> urnTransforms_;
     nu::AssetHotReload hotReload_;
 
+    std::array<UiIcon, 4> abilityIcons_{};
+
     ImpEnemy imp_{};
     PlayerCombat player_{};
     std::vector<Projectile> projectiles_;
+    std::vector<ScorchZone> scorchZones_;
     std::vector<TrailParticle> trailParticles_;
     std::vector<MeleeSlashVfx> meleeVfx_;
     std::vector<DamageNumber> damageNumbers_;

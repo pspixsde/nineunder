@@ -17,6 +17,8 @@ enum class Key : uint16_t {
     D,
     Q,
     E,
+    R,
+    F,
     Space,
     LeftShift,
     LeftCtrl,
@@ -58,6 +60,10 @@ public:
     void setRelativeMouse(bool enabled);
     [[nodiscard]] bool relativeMouse() const { return relativeMouse_; }
 
+    /// Multiplier on mouse look (1.0 = default).
+    void setLookSensitivity(float sensitivity);
+    [[nodiscard]] float lookSensitivity() const { return lookSensitivity_; }
+
 private:
     static int keyIndex(Key key);
     static Key mapScancode(SDL_Scancode sc);
@@ -71,6 +77,7 @@ private:
     Vec2 mouseDelta_{};
     float scrollDelta_ = 0.0f;
     bool relativeMouse_ = false;
+    float lookSensitivity_ = 1.0f;
 
     SDL_Gamepad* gamepad_ = nullptr;
 };

@@ -6,6 +6,22 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-10-11
+
+### Added
+
+- Ability kit: **Q** melee (icon), **E** scorched dash (6s CD), **R** molten barrier (16s CD), **F** ult (45s CD).
+- Ult buff (10s): faster fire/reload, 80 dmg shots, stackable burn (2s / 10 DPS).
+- Scorched trail: 50% enemy slow + 10 DPS for 3s; barrier absorbs spit up to 50% max HP / 4s and skips reload.
+- Settings (main + pause): General (mouse sensitivity, damage numbers), Audio (volume), Credits (Zapsplat).
+- Damage red vignette (flash on hit; persistent when low HP).
+- Ability icons from `assets/ui/icons/`.
+
+### Changed
+
+- Imp retreat speed slower than chase so melee approach is viable.
+- Imp spit projectile speed increased.
+
 ## [0.3.0] — 2026-10-11
 
 ### Added

@@ -1,0 +1,29 @@
+# Triangle and texture budgets for stylized mid-poly (Nine Under).
+# Keys match the category prefix before the first '.' (e.g. character.humanoid → character).
+
+[character]
+tris_min = 15000
+tris_max = 30000
+texture_max = 2048
+
+[enemy]
+tris_min = 8000
+tris_max = 25000
+texture_max = 2048
+
+[prop]
+tris_min = 500
+tris_max = 5000
+texture_max = 1024
+
+[environment]
+tris_min = 200
+tris_max = 3000
+texture_max = 1024
+grid_m = 1.0
+wall_unit_m = 4.0
+
+[default]
+tris_min = 100
+tris_max = 50000
+texture_max = 2048

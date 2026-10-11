@@ -13,5 +13,6 @@ globs:
 - `engine/` must never `#include` anything from `game/`.
 - Public headers use the `nu/` prefix (`#include "nu/core/log.hpp"`).
 - Lore stays in `LORE.md`; mechanical changes go in `CHANGELOG.md`.
-- Prefer fixed 60 Hz simulation with interpolated render.
+- Prefer fixed 60 Hz simulation with interpolated render. 
 - Keep Vulkan validation clean in `debug` / `dev` presets.
+- Update `DEVELOPMENT_STATE.md` and `FUTURE_CHANGES.md` with every new release/version

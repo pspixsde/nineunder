@@ -5,6 +5,7 @@
 #define MINIAUDIO_IMPLEMENTATION
 #include <miniaudio.h>
 
+#include <algorithm>
 #include <vector>
 
 namespace nu {
@@ -103,6 +104,13 @@ void AudioEngine::playSound(const std::filesystem::path& path, float pitch) {
     }
 
     impl_->active.push_back(sound);
+}
+
+void AudioEngine::setMasterVolume(float volume) {
+    masterVolume_ = std::clamp(volume, 0.0f, 1.0f);
+    if (ready_ && impl_) {
+        ma_engine_set_volume(&impl_->engine, masterVolume_);
+    }
 }
 
 } // namespace nu

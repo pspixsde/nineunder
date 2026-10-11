@@ -17,14 +17,13 @@ Stand up a custom engine and prove the stack: window, Vulkan rendering, physics
 character, one graybox arena, debug UI, reproducible Windows build.  
 **Exit:** a developer can build and walk around Arena I in third person.
 
-### ▶ Stage 1 — Core combat & character fantasy — *current (v0.3)*
+### ▶ Stage 1 — Core combat & character fantasy — *current (v0.4)*
 
 Make the player *feel* like a Pit fighter: attacks, damage, death/respawn rules
 for a run, one playable character fantasy implemented (kit + feedback), camera
 and controls locked to a fun third-person combat read.  
 **Exit:** a short fight encounter is fun without graybox excuses.  
-*(v0.3: two-way Imp fight + melee slot. Still graybox; abilities 2–3 / ult and
-combat juice remain open.)*
+*(v0.4: full Q/E/R/F kit + settings. Still graybox; feel/telegraphs/art remain.)*
 
 ### Stage 2 — First arena is a game
 
@@ -80,7 +79,7 @@ store/page readiness, final balance.
 - handle 3d models that are heavy even after decimating - file size. could be textures 
 - mention zapsplat in credits
 - Tuning pass: fire interval, reload, projectile speed, Imp HP/hitbox feel
--
+- add items
 
 ---
 
@@ -91,25 +90,32 @@ store/page readiness, final balance.
 
 | Label               | Content                                                                                         |
 | ------------------- | ----------------------------------------------------------------------------------------------- |
-| **Current version** | `v0.3.0`                                                                                        |
-| **Next version**    | `v0.4` *(proposed — Stage 1 kit / feel)*                                                        |
-| **Intent**          | Fill ability slots 2–3 + ult stub; more combat juice without leaving graybox Stage 1.           |
+| **Current version** | `v0.4.0`                                                                                        |
+| **Next version**    | `v0.5` *(proposed — Stage 1 feel / readability)*                                                |
+| **Intent**          | Make the Imp fight readable and punchy without leaving graybox.                                 |
 
 
 > Hybrid workspace: the agent proposes/updates this block when versions move;
 > you edit and approve. When locked, this section feeds the next update plan.
 
 
-### Proposed scope for `v0.3` → `v0.4`
+### Proposed scope for `v0.4` → `v0.5`
 
-- Wire ability slots 2 and 3 (even simple placeholders with cooldowns)
-- Ultimate ability stub on the big HUD slot (high cooldown, readable payoff)
-- Imp spit telegraph / wind-up so attacks are dodgeable
-- Light combat feel pass: hitstop or camera nudge on melee / fireball hit
+- make the imp model briefly flash yellow in order to indicate that it's about to attack
+- in drafts folder there is "imp_windup.wav" - use it as the windup sound before it attacks. randomize pitch to avoid monotonous sounds 
+- Light combat feel: hitstop or camera nudge on melee / fireball / ult hits
+- remove the unlimited ammo feature from the barrier ability
+- Tuning pass: create an md document with all current balance and numeric values (cooldowns, damage, ability effects, buffs, debuffs, etc.) along with suggested changes by the agent. It's going to be a hybrid workspace heavily maintained by the owner and implemented only if requested. The aim is to finetune the conceptual parts of the game and balance it for more enjoyable gameplay.
+- all abilities and perhaps the base attacks in the game work inconsistently. An ability while not on cooldown might not trigger even after pressing it 5 times. This might be tied to the simultaneous movement in the process hintering the flow, but from what I saw sometimes even when you stay perfectly still and try to press an ability, it takes many presses to make it work. Investigate this issue and fix it. Let's tighten all processes that are involved in the flow of the game - everything needs to run smoothly
+- scale HUD elements up. they are too small even on a big monitor. add a setting in general tab where you can scale it up or down (good example: Minecraft)
+- burn ticks from ulti hits and second ability scorched ground happen way too much. floating numbers show many 1s dropping like a waterfall - fine tune that and make the burn effect ticks slower 
+- below all abilities show which key is bind to them for clarity. ability 1 should be Q, ability 2 should be SHIFT, 3 should be E, ulti should be SPACEBAR.
+- add the possibility to reload even when you are not completely out of ammo (similar to shooter games) - use R key for that
+- move "Nine Under - Arena I" helper box to the right upper corner. in the freed up corner let's place 2 boxes showing the currency player currently has. The currencies will be called "Nox" and "Pure Nox". Killing an imp gives you one Nox. For now let's make it so that as soon as you kill one, you get it. Below those boxes place an icon to open the skill tree. below the icon also show the key bind that opens it - it will be TAB (unbind it from the current "show mouse" feature and use something else for it). Skill tree will have 2 kinds of skills: Minor and Major ones. to power up minor ones Noxes will be used, for major ones - Pure Noxes. For now put 2 skills as placeholders that don't do anything.
 
 
 
-### Out of scope for `v0.4` (parked)
+### Out of scope for `v0.5` (parked)
 
 - Full enemy AI packs / multi-enemy encounters  
 - Multi-arena run loop / meta progression  
@@ -119,8 +125,8 @@ store/page readiness, final balance.
 
 ### Approval
 
-- [ ] Scope edited / accepted by owner  
-- [ ] Ready to turn into an implementation plan  
+- [x] Scope edited / accepted by owner  
+- [x] Ready to turn into an implementation plan  
 
 ---
 

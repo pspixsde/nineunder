@@ -1,0 +1,18 @@
+id = "prop_ink_urn"
+category = "prop"
+status = "polished"
+height_m = 0.9
+
+[concept]
+prompt = "cracked stone urn with dark ink stains, dread pit prop"
+workflow = "Nine Under - Text to Image v1"
+
+[generate]
+backend = "pixal3d"
+backend_version = "Nine Under - Image to 3D v1"
+selected = "raw/selected.glb"
+
+[export]
+lods = [1.0, 0.5, 0.25]
+collision = "box"
+rig = ""

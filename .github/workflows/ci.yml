@@ -50,3 +50,9 @@ jobs:
         run: ctest --preset dev --output-on-failure
         env:
           VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+
+      - name: Validate cooked sample prop (cooker)
+        run: |
+          .\build\dev\tools\nu_asset_cooker.exe assets\models\prop\prop_practice_cube.glb --validate --tris-max 5000
+        env:
+          VCPKG_ROOT: ${{ github.workspace }}/vcpkg

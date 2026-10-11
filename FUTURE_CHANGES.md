@@ -11,7 +11,7 @@ High-level stages to fully develop the game. No task-level detail here — only
 what each stage is *for* and what “done” roughly means.  
 **Current stage is marked with ▶.** Update the marker when a new version ships.
 
-### ▶ Stage 0 — Foundation (tech vertical slice) — *current (v0.1)*
+### ▶ Stage 0 — Foundation (tech vertical slice) — *current (v0.1.1)*
 
 Stand up a custom engine and prove the stack: window, Vulkan rendering, physics
 character, one graybox arena, debug UI, reproducible Windows build.  
@@ -59,44 +59,60 @@ store/page readiness, final balance.
 
 ---
 
+
+
 ## 2. To Do List
 
 > **Owner workspace.** Do not auto-fill this section.  
 > Dump anything here: immediate fixes, backlog, design notes, constraints, open
 > questions. Prefer clear directives (“change X so that Y”) over vague wishes.
 
-<!-- Add items below. Suggested tags: [now] [backlog] [design] [bug] [tech] [art] [audio] -->
 
--
+
+- Update gpu drivers: "Your NVIDIA driver (561.00) may be too old for the bundled PyTorch. Recommended minimum: 580. Please consider updating your NVIDIA drivers if you run into issues."
+- add 3 characters
+- add a skill tree with major and minor skills
+- add an inventory with 8 active items 3 of which are active
+- 3 basic abilities and 1 ultimate ability per character
+- expand lore
+- Decimate / LOD `prop_ink_urn` into prop budget (500–5k tris) — current GLB is still heavy
 
 ---
 
+
+
 ## 3. Next Version Changes
 
-| Label | Content|
-|--|--|
-| **Current version** | `v0.1` |
-| **Next version** | `v0.1.1` *(patch — proposed)* |
-| **Intent** | Stabilize the foundation and make the Arena I sandbox a better base for Stage 1 combat work. |
+
+| Label               | Content                                                                                         |
+| ------------------- | ----------------------------------------------------------------------------------------------- |
+| **Current version** | `v0.1.1`                                                                                        |
+| **Next version**    | `v0.2` *(proposed — Stage 1 combat kickoff)*                                                    |
+| **Intent**          | Start real combat fantasy: player damage/attacks, Imp can die from gameplay (not only F2).      |
+
 
 > Hybrid workspace: the agent proposes/updates this block when versions move;
 > you edit and approve. When locked, this section feeds the next update plan.
 
-### Proposed scope for `v0.1` → `v0.1.1`
 
-- [ ] **Hardening** — Document and/or script the VS-developer-shell requirement; keep Vulkan loader hygiene (no applocal `vulkan-1.dll`); smoke-test path from clean clone.
-- [ ] **Arena I sandbox quality** — Clearer graybox read (ink pools as triggers or debug volumes, gate/vale markers, spawn/reset); optional simple ground material variation so space reads in screenshots.
-- [ ] **Player feel prep** — Tune capsule/camera defaults; expose a few move/ jump values for iteration; ensure respawn-at-spawn without restarting the process.
-- [ ] **Combat stub (thin)** — Minimal damageable target + one melee or hitscan debug attack so Stage 1 has a hook to grow from (can stay ImGui-driven).
-- [ ] **Content pipeline check** — Load at least one real glTF mesh (prop or proxy character) through the existing asset path to prove the cooker/runtime loop.
-- [ ] **Audio stub** — Play one one-shot / loop to prove miniaudio wiring beyond init.
-- [ ] **Docs sync** — On ship: bump `CHANGELOG.md`, refresh `DEVELOPMENT_STATE.md`, advance GameDev Plan marker if a stage actually completed (unlikely for a patch), rewrite this section for `v0.1.1` → next.
 
-### Out of scope for `v0.1.1` (parked)
+### Proposed scope for `v0.1.1` → `v0.2`
 
-- Full combat game feel / enemy AI packs  
+- [ ] Player melee attack (simple hit volume / cooldown)
+- [ ] Imp takes damage from player attacks; remove temporary F2 kill once combat works
+- [ ] Player HP + death / respawn stub for Arena I
+- [ ] Hit feedback (flash / number / SFX placeholder)
+- [ ] **Docs sync** — On ship: bump `CHANGELOG.md`, refresh `DEVELOPMENT_STATE.md`, advance GameDev Plan marker if Stage 1 exit criteria are met, rewrite this section for the following hop.
+
+
+
+### Out of scope for `v0.2` (parked)
+
+- Full enemy AI packs / multi-enemy encounters  
 - Multi-arena run loop / meta progression  
-- Final art pass or narrative scripting for Vareth  
+- Final art pass or narrative scripting for Vareth
+
+
 
 ### Approval
 
@@ -105,6 +121,5 @@ store/page readiness, final balance.
 
 ---
 
-*When `v0.1.1` (or whichever next version you choose) ships: move delivered items
-into `CHANGELOG.md`, update `DEVELOPMENT_STATE.md`, and replace this section with
-the following hop.*
+*When the next version ships: move delivered items into* `CHANGELOG.md`*, update*
+`DEVELOPMENT_STATE.md`*, and replace this section with the following hop.*

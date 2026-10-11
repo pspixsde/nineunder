@@ -1,11 +1,14 @@
 #include "nu/render/renderer.hpp"
 
+#include "nu/assets/texture_loader.hpp"
 #include "nu/core/log.hpp"
 #include "nu/core/paths.hpp"
 #include "nu/platform/filesystem.hpp"
 
+#include <array>
 #include <cstring>
 #include <stdexcept>
+#include <vector>
 
 namespace nu {
 namespace {
@@ -46,6 +49,7 @@ void Renderer::init(SDL_Window* window, uint32_t width, uint32_t height) {
 
     createDepth();
     createFrameResources();
+    createMaterialResources();
     if (!ensureShaders()) {
         throw std::runtime_error("Failed to load mesh shaders (expected shaders/mesh.vert.spv and mesh.frag.spv)");
     }
@@ -62,6 +66,7 @@ void Renderer::shutdown() {
         vkDeviceWaitIdle(device_.device());
     }
     destroyPipelines();
+    destroyMaterialResources();
     destroyFrameResources();
     destroyDepth();
     shaders_.shutdown();
@@ -181,6 +186,114 @@ void Renderer::destroyFrameResources() {
     }
 }
 
+namespace {
+
+AllocatedImage makeSolidTexture(VulkanDevice& device, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+    CpuTexture cpu;
+    cpu.width = 1;
+    cpu.height = 1;
+    cpu.channels = 4;
+    cpu.pixels = {r, g, b, a};
+    return uploadTexture(device, cpu);
+}
+
+} // namespace
+
+void Renderer::createMaterialResources() {
+    VkSamplerCreateInfo samplerInfo{VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
+    samplerInfo.magFilter = VK_FILTER_LINEAR;
+    samplerInfo.minFilter = VK_FILTER_LINEAR;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.maxLod = 16.0f;
+    vkCreateSampler(device_.device(), &samplerInfo, nullptr, &materialSampler_);
+
+    defaultWhite_ = makeSolidTexture(device_, 255, 255, 255, 255);
+    defaultNormal_ = makeSolidTexture(device_, 128, 128, 255, 255);
+    defaultOrm_ = makeSolidTexture(device_, 255, 128, 0, 255); // AO=1, rough=0.5, metal=0
+    defaultEmissive_ = makeSolidTexture(device_, 0, 0, 0, 255);
+
+    std::array<VkDescriptorSetLayoutBinding, 4> bindings{};
+    for (uint32_t i = 0; i < 4; ++i) {
+        bindings[i].binding = i;
+        bindings[i].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        bindings[i].descriptorCount = 1;
+        bindings[i].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    }
+    VkDescriptorSetLayoutCreateInfo layoutInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
+    layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+    layoutInfo.pBindings = bindings.data();
+    vkCreateDescriptorSetLayout(device_.device(), &layoutInfo, nullptr, &materialSetLayout_);
+
+    VkDescriptorPoolSize poolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4 * 128};
+    VkDescriptorPoolCreateInfo poolInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO};
+    poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+    poolInfo.maxSets = 128;
+    poolInfo.poolSizeCount = 1;
+    poolInfo.pPoolSizes = &poolSize;
+    vkCreateDescriptorPool(device_.device(), &poolInfo, nullptr, &materialDescriptorPool_);
+
+    defaultMaterialSet_ =
+        createMaterialSet(defaultWhite_.view, defaultNormal_.view, defaultOrm_.view, defaultEmissive_.view);
+}
+
+void Renderer::destroyMaterialResources() {
+    defaultMaterialSet_ = VK_NULL_HANDLE;
+    if (materialDescriptorPool_) {
+        vkDestroyDescriptorPool(device_.device(), materialDescriptorPool_, nullptr);
+        materialDescriptorPool_ = VK_NULL_HANDLE;
+    }
+    if (materialSetLayout_) {
+        vkDestroyDescriptorSetLayout(device_.device(), materialSetLayout_, nullptr);
+        materialSetLayout_ = VK_NULL_HANDLE;
+    }
+    if (materialSampler_) {
+        vkDestroySampler(device_.device(), materialSampler_, nullptr);
+        materialSampler_ = VK_NULL_HANDLE;
+    }
+    device_.destroyImage(defaultWhite_);
+    device_.destroyImage(defaultNormal_);
+    device_.destroyImage(defaultOrm_);
+    device_.destroyImage(defaultEmissive_);
+}
+
+VkDescriptorSet Renderer::createMaterialSet(VkImageView baseColor, VkImageView normal, VkImageView orm,
+                                            VkImageView emissive) {
+    VkDescriptorSetAllocateInfo alloc{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
+    alloc.descriptorPool = materialDescriptorPool_;
+    alloc.descriptorSetCount = 1;
+    alloc.pSetLayouts = &materialSetLayout_;
+    VkDescriptorSet set = VK_NULL_HANDLE;
+    if (vkAllocateDescriptorSets(device_.device(), &alloc, &set) != VK_SUCCESS) {
+        throw std::runtime_error("Failed to allocate material descriptor set");
+    }
+
+    const VkImageView views[4] = {
+        baseColor ? baseColor : defaultWhite_.view,
+        normal ? normal : defaultNormal_.view,
+        orm ? orm : defaultOrm_.view,
+        emissive ? emissive : defaultEmissive_.view,
+    };
+
+    std::array<VkDescriptorImageInfo, 4> infos{};
+    std::array<VkWriteDescriptorSet, 4> writes{};
+    for (uint32_t i = 0; i < 4; ++i) {
+        infos[i].sampler = materialSampler_;
+        infos[i].imageView = views[i];
+        infos[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writes[i].dstSet = set;
+        writes[i].dstBinding = i;
+        writes[i].descriptorCount = 1;
+        writes[i].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        writes[i].pImageInfo = &infos[i];
+    }
+    vkUpdateDescriptorSets(device_.device(), static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
+    return set;
+}
+
 bool Renderer::ensureShaders() {
     const auto vertPath = Paths::resolveShader("mesh.vert.spv");
     const auto fragPath = Paths::resolveShader("mesh.frag.spv");
@@ -212,9 +325,10 @@ void Renderer::createPipelines() {
     push.offset = 0;
     push.size = sizeof(Mat4) + sizeof(MaterialGpu);
 
+    std::array<VkDescriptorSetLayout, 2> setLayouts = {frameSetLayout_, materialSetLayout_};
     VkPipelineLayoutCreateInfo layoutInfo{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
-    layoutInfo.setLayoutCount = 1;
-    layoutInfo.pSetLayouts = &frameSetLayout_;
+    layoutInfo.setLayoutCount = static_cast<uint32_t>(setLayouts.size());
+    layoutInfo.pSetLayouts = setLayouts.data();
     layoutInfo.pushConstantRangeCount = 1;
     layoutInfo.pPushConstantRanges = &push;
     vkCreatePipelineLayout(device_.device(), &layoutInfo, nullptr, &pipelineLayout_);
@@ -234,11 +348,12 @@ void Renderer::createPipelines() {
     binding.stride = sizeof(Vertex);
     binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-    std::array<VkVertexInputAttributeDescription, 4> attrs{};
+    std::array<VkVertexInputAttributeDescription, 5> attrs{};
     attrs[0] = {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)};
     attrs[1] = {1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, normal)};
     attrs[2] = {2, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, uv)};
     attrs[3] = {3, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Vertex, color)};
+    attrs[4] = {4, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Vertex, tangent)};
 
     VkPipelineVertexInputStateCreateInfo vertexInput{VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO};
     vertexInput.vertexBindingDescriptionCount = 1;
@@ -424,10 +539,18 @@ void Renderer::drawScene(const Camera& camera, const RenderScene& scene) {
         MaterialGpu material;
     };
 
+    VkDescriptorSet lastMaterial = VK_NULL_HANDLE;
     for (const DrawItem& item : scene.draws) {
         if (!item.mesh || item.mesh->indexCount == 0) {
             continue;
         }
+        VkDescriptorSet matSet = item.materialSet ? item.materialSet : defaultMaterialSet_;
+        if (matSet != lastMaterial) {
+            vkCmdBindDescriptorSets(frame.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout_, 1, 1, &matSet, 0,
+                                    nullptr);
+            lastMaterial = matSet;
+        }
+
         PushData push{item.transform, item.material};
         vkCmdPushConstants(frame.cmd, pipelineLayout_, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0,
                            sizeof(PushData), &push);

@@ -20,6 +20,8 @@ struct DrawItem {
     const GpuMesh* mesh = nullptr;
     Mat4 transform{1.0f};
     MaterialGpu material{};
+    /// Optional material texture set (set=1). Null uses the renderer default (white/flat).
+    VkDescriptorSet materialSet = VK_NULL_HANDLE;
 };
 
 struct RenderScene {
@@ -50,7 +52,15 @@ public:
     [[nodiscard]] VulkanDevice& device() { return device_; }
     [[nodiscard]] MeshFactory& meshes() { return *meshFactory_; }
     [[nodiscard]] ShaderCache& shaders() { return shaders_; }
+    [[nodiscard]] VkDescriptorSetLayout materialSetLayout() const { return materialSetLayout_; }
+    [[nodiscard]] VkDescriptorPool materialDescriptorPool() const { return materialDescriptorPool_; }
+    [[nodiscard]] VkSampler materialSampler() const { return materialSampler_; }
+    [[nodiscard]] VkDescriptorSet defaultMaterialSet() const { return defaultMaterialSet_; }
     [[nodiscard]] VkCommandBuffer currentCmd() const { return frames_[frameIndex_].cmd; }
+
+    /// Allocate a set=1 descriptor for baseColor/normal/ORM/emissive image views.
+    [[nodiscard]] VkDescriptorSet createMaterialSet(VkImageView baseColor, VkImageView normal, VkImageView orm,
+                                                    VkImageView emissive);
     [[nodiscard]] float aspect() const {
         return extent_.height > 0 ? static_cast<float>(extent_.width) / static_cast<float>(extent_.height) : 1.0f;
     }
@@ -77,6 +87,8 @@ private:
     void destroyDepth();
     void createFrameResources();
     void destroyFrameResources();
+    void createMaterialResources();
+    void destroyMaterialResources();
     bool ensureShaders();
 
     VulkanDevice device_;
@@ -87,7 +99,15 @@ private:
     VkPipelineLayout pipelineLayout_ = VK_NULL_HANDLE;
     VkPipeline pipeline_ = VK_NULL_HANDLE;
     VkDescriptorSetLayout frameSetLayout_ = VK_NULL_HANDLE;
+    VkDescriptorSetLayout materialSetLayout_ = VK_NULL_HANDLE;
     VkDescriptorPool descriptorPool_ = VK_NULL_HANDLE;
+    VkDescriptorPool materialDescriptorPool_ = VK_NULL_HANDLE;
+    VkSampler materialSampler_ = VK_NULL_HANDLE;
+    VkDescriptorSet defaultMaterialSet_ = VK_NULL_HANDLE;
+    AllocatedImage defaultWhite_{};
+    AllocatedImage defaultNormal_{};
+    AllocatedImage defaultOrm_{};
+    AllocatedImage defaultEmissive_{};
     std::array<VkDescriptorSet, kFramesInFlight> frameSets_{};
 
     AllocatedImage depthImage_{};

@@ -1,0 +1,28 @@
+{
+  "_meta": {
+    "title": "Nine Under — TripoSG image-to-3D v1 (default)",
+    "notes": "Requires TripoSG ComfyUI nodes. Placeholders: {{IMAGE}} {{SEED}} {{ASSET_ID}}. Replace class_type names with your installed node pack equivalents."
+  },
+  "1": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "{{IMAGE}}"
+    }
+  },
+  "2": {
+    "class_type": "TripoSGImageTo3D",
+    "inputs": {
+      "image": ["1", 0],
+      "seed": "{{SEED}}",
+      "guidance_scale": 7.0,
+      "steps": 50
+    }
+  },
+  "3": {
+    "class_type": "SaveGLB",
+    "inputs": {
+      "mesh": ["2", 0],
+      "filename_prefix": "nu_{{ASSET_ID}}_triposg"
+    }
+  }
+}

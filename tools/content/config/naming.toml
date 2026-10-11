@@ -1,0 +1,16 @@
+# Asset ID prefixes and conventions.
+
+[prefixes]
+character = "chr_"
+enemy = "enm_"
+prop = "prop_"
+environment = "env_"
+
+collision_prefix = "COL_"
+lod_suffixes = ["_LOD0", "_LOD1", "_LOD2"]
+
+[conventions]
+units = "metres"
+up_axis = "Y"
+origin = "bottom_centre"
+character_pose = "A-pose"

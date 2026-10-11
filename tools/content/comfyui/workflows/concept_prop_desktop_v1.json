@@ -1,0 +1,63 @@
+{
+  "_meta": {
+    "title": "Nine Under — concept prop (Comfy Desktop / SD1.5)",
+    "notes": "API-format workflow for local Comfy Desktop. Placeholders: {{PROMPT}} {{SEED}} {{ASSET_ID}}. Checkpoint: v1-5-pruned-emaonly.safetensors (Shared models/checkpoints)."
+  },
+  "4": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": {
+      "ckpt_name": "v1-5-pruned-emaonly.safetensors"
+    }
+  },
+  "5": {
+    "class_type": "EmptyLatentImage",
+    "inputs": {
+      "width": 768,
+      "height": 768,
+      "batch_size": 1
+    }
+  },
+  "6": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "{{PROMPT}}, single game prop, centered, dark fantasy, stylized mid-poly, muted brown grey green palette, damp stone, plain studio background, clean silhouette",
+      "clip": ["4", 1]
+    }
+  },
+  "7": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "photorealistic, neon, watermark, text, logo, multiple objects, cluttered background, blurry",
+      "clip": ["4", 1]
+    }
+  },
+  "3": {
+    "class_type": "KSampler",
+    "inputs": {
+      "seed": "{{SEED}}",
+      "steps": 22,
+      "cfg": 7.0,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "denoise": 1.0,
+      "model": ["4", 0],
+      "positive": ["6", 0],
+      "negative": ["7", 0],
+      "latent_image": ["5", 0]
+    }
+  },
+  "8": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["3", 0],
+      "vae": ["4", 2]
+    }
+  },
+  "9": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "filename_prefix": "nu_{{ASSET_ID}}_concept",
+      "images": ["8", 0]
+    }
+  }
+}

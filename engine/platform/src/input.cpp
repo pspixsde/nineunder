@@ -132,16 +132,16 @@ Vec2 Input::moveAxis() const {
 }
 
 Vec2 Input::lookAxis() const {
-    Vec2 axis = mouseDelta_ * 0.12f;
+    Vec2 axis = mouseDelta_ * (0.12f * lookSensitivity_);
     if (gamepad_) {
         const float rx = SDL_GetGamepadAxis(gamepad_, SDL_GAMEPAD_AXIS_RIGHTX) / 32767.0f;
         const float ry = SDL_GetGamepadAxis(gamepad_, SDL_GAMEPAD_AXIS_RIGHTY) / 32767.0f;
         constexpr float dead = 0.15f;
         if (std::fabs(rx) > dead) {
-            axis.x += rx * 6.0f;
+            axis.x += rx * 6.0f * lookSensitivity_;
         }
         if (std::fabs(ry) > dead) {
-            axis.y += ry * 6.0f;
+            axis.y += ry * 6.0f * lookSensitivity_;
         }
     }
     return axis;
@@ -150,6 +150,10 @@ Vec2 Input::lookAxis() const {
 void Input::setRelativeMouse(bool enabled) {
     relativeMouse_ = enabled;
     SDL_SetWindowRelativeMouseMode(SDL_GetMouseFocus(), enabled);
+}
+
+void Input::setLookSensitivity(float sensitivity) {
+    lookSensitivity_ = std::clamp(sensitivity, 0.1f, 3.0f);
 }
 
 int Input::keyIndex(Key key) {
@@ -170,6 +174,10 @@ Key Input::mapScancode(SDL_Scancode sc) {
         return Key::Q;
     case SDL_SCANCODE_E:
         return Key::E;
+    case SDL_SCANCODE_R:
+        return Key::R;
+    case SDL_SCANCODE_F:
+        return Key::F;
     case SDL_SCANCODE_SPACE:
         return Key::Space;
     case SDL_SCANCODE_LSHIFT:

@@ -57,3 +57,6 @@ __pycache__/
 .env
 .env.local
 *.local
+
+# Never commit MCP secrets / local Cursor MCP overrides
+.cursor/mcp.json

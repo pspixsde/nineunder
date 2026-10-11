@@ -1,0 +1,40 @@
+# Pin ComfyUI custom-node git revisions used by Nine Under workflows.
+# Install under ComfyUI/custom_nodes and checkout the listed commit.
+
+[comfyui]
+# Comfy Desktop (this machine): create a LOCAL install (not only Comfy Cloud).
+# Shared models: %LOCALAPPDATA%\Comfy-Desktop\ComfyUI-Shared\models
+# Local installs: %LOCALAPPDATA%\Comfy-Desktop\ComfyUI-Installs\
+note = "Set NU_COMFYUI_URL to the running local server (default http://127.0.0.1:8188)"
+
+[[nodes]]
+name = "ComfyUI-3D-Pack"
+url = "https://github.com/MrForExample/ComfyUI-3D-Pack"
+commit = "pin-me"
+provides = ["TripoSR", "mesh export helpers"]
+
+[[nodes]]
+name = "ComfyUI-Hunyuan3DWrapper"
+url = "https://github.com/kijai/ComfyUI-Hunyuan3DWrapper"
+commit = "pin-me"
+provides = ["Hunyuan3D-2mini"]
+licence_warning = "Hunyuan Community licence does NOT grant rights in EU/UK/South Korea"
+
+[[nodes]]
+name = "ComfyUI-TripoSG"
+url = "https://github.com/VAST-AI-Research/TripoSG"
+commit = "pin-me"
+provides = ["TripoSG"]
+note = "Use the ComfyUI node package corresponding to TripoSG MIT release"
+
+[[nodes]]
+name = "ComfyUI_essentials"
+url = "https://github.com/cubiq/ComfyUI_essentials"
+commit = "pin-me"
+provides = ["image utils"]
+
+[[nodes]]
+name = "rembg-comfyui / BiRefNet"
+url = "https://github.com/nullquant/ComfyUI-RMBG"
+commit = "pin-me"
+provides = ["background removal"]

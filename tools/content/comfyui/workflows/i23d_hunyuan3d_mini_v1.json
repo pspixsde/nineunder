@@ -1,0 +1,37 @@
+{
+  "_meta": {
+    "title": "Nine Under — Hunyuan3D-2mini (OPTIONAL)",
+    "licence_warning": "Hunyuan Community licence does NOT grant rights in EU, UK, or South Korea. Do not use for shippable assets in those regions.",
+    "notes": "Placeholders: {{IMAGE}} {{SEED}} {{ASSET_ID}}. Enable CPU/GPU offloading for 8 GB VRAM."
+  },
+  "1": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "{{IMAGE}}"
+    }
+  },
+  "2": {
+    "class_type": "Hy3D21LoadModel",
+    "inputs": {
+      "model": "hunyuan3d-dit-v2-mini"
+    }
+  },
+  "3": {
+    "class_type": "Hy3D21GenerateModel",
+    "inputs": {
+      "pipeline": ["2", 0],
+      "image": ["1", 0],
+      "seed": "{{SEED}}",
+      "steps": 30,
+      "guidance_scale": 5.0,
+      "octree_resolution": 256
+    }
+  },
+  "4": {
+    "class_type": "SaveGLB",
+    "inputs": {
+      "mesh": ["3", 0],
+      "filename_prefix": "nu_{{ASSET_ID}}_hunyuan_mini"
+    }
+  }
+}

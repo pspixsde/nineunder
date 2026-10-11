@@ -6,6 +6,10 @@ Built on a custom C++20 / Vulkan 1.3 engine for maximum flexibility.
 World and character notes live in [`LORE.md`](LORE.md).
 Mechanical changes are tracked in [`CHANGELOG.md`](CHANGELOG.md).
 Engine architecture is described in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+3D content pipeline how-to: [`docs/HOWTO_3D_PIPELINE.md`](docs/HOWTO_3D_PIPELINE.md)
+(reference: [`docs/ASSET_PIPELINE.md`](docs/ASSET_PIPELINE.md),
+CLI: [`tools/content`](tools/content)); characters
+[`docs/CHARACTERS.md`](docs/CHARACTERS.md), levels [`docs/LEVELS.md`](docs/LEVELS.md).
 
 ## Prerequisites
 
@@ -17,6 +21,9 @@ Engine architecture is described in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.m
 | **Vulkan SDK** ≥ 1.3 | `winget install KhronosGroup.VulkanSDK` |
 | **vcpkg** | Set `VCPKG_ROOT` (bootstrap clones to `C:\dev\vcpkg`) |
 | **Git LFS** | `git lfs install` |
+| **Blender** LTS 4.2 (optional) | Content cleanup/export; set `NU_BLENDER` |
+| **uv** or Python 3.11+ (optional) | `tools/content` pipeline CLI (`nu-content`) |
+| **ComfyUI** (optional) | Local image / image-to-3D; set `NU_COMFYUI_URL` |
 
 ## Bootstrap
 
@@ -66,14 +73,26 @@ ctest --preset dev
 ```
 engine/     # static lib nu_engine — game-agnostic
 game/       # NineUnder.exe — gameplay
-tools/      # asset cooker, shader helpers
+tools/      # asset cooker, shader helpers, content/ (nu-content)
 shaders/    # Slang sources → SPIR-V
-assets/     # source art (Git LFS)
+assets/     # source art (Git LFS) — see assets/README.md
 tests/      # doctest unit tests
-docs/       # architecture and conventions
+docs/       # architecture, asset pipeline, characters, levels
 ```
 
 `engine/` must never include headers from `game/`.
+
+## Content pipeline (quick)
+
+```powershell
+cd tools/content
+pip install -e .
+nu-content make-primitive prop_example --category prop
+nu-content status
+nu-content validate --all
+```
+
+Full docs: [`docs/ASSET_PIPELINE.md`](docs/ASSET_PIPELINE.md).
 
 ## License
 

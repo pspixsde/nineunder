@@ -1,0 +1,21 @@
+id = "prop_practice_cube"
+category = "prop"
+status = "generated"
+height_m = 1.0
+
+[concept]
+prompt = ""
+workflow = "concept_prop_v1"
+
+[generate]
+backend = "primitive"
+selected = "raw/selected.glb"
+
+[export]
+lods = [
+    1.0,
+    0.5,
+    0.25,
+]
+collision = "box"
+rig = ""

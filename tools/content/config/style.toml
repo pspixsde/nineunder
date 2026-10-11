@@ -1,0 +1,39 @@
+# Dread Pit visual language for concept / generation prompts.
+
+[global]
+setting = "The Dread Pit — dark fantasy, muted palette, sickly organic textures"
+mood = "stagnant dawn, rot, damp stone, ink-black water"
+
+positive_suffix = """
+dark fantasy game asset, stylized mid-poly, muted brown grey green palette,
+sickly organic details, damp rot, desaturated, third-person game ready,
+clean silhouette, plain studio background
+"""
+
+negative = """
+photorealistic, glossy plastic, neon cyberpunk, bright saturated colors,
+low poly PS1, watermark, text, logo, multiple objects, cluttered background,
+broken anatomy, extra limbs
+"""
+
+[character]
+pose = "A-pose, front view, full body, plain grey background"
+prompt_template = """
+{subject}, A-pose full body character, {positive_suffix}
+"""
+
+[prop]
+prompt_template = """
+{subject}, single game prop, centered, {positive_suffix}
+"""
+
+[environment]
+prompt_template = """
+{subject}, modular environment piece, orthographic three-quarter, {positive_suffix}
+"""
+
+[backends]
+default_shape = "triposg"
+blockout_shape = "triposr"
+# hunyuan3d_mini only where Community licence allows (NOT EU/UK/KR)
+optional_shape = "hunyuan3d_mini"

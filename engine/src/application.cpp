@@ -47,6 +47,9 @@ void Application::initSystems() {
     imgui_ = std::make_unique<ImGuiLayer>();
     imgui_->init(window_->sdlWindow(), *renderer_);
 
+    audio_ = std::make_unique<AudioEngine>();
+    audio_->init();
+
     physics_ = std::make_unique<PhysicsWorld>();
     physics_->init();
 
@@ -61,7 +64,7 @@ void Application::initSystems() {
     camera_.setMode(CameraMode::ThirdPerson);
     camera_.yaw = -90.0f;
     camera_.pitch = -25.0f;
-    input_->setRelativeMouse(true);
+    input_->setRelativeMouse(false);
 
     clock_.reset();
     onInit();
@@ -72,6 +75,10 @@ void Application::shutdownSystems() {
     if (imgui_) {
         imgui_->shutdown();
         imgui_.reset();
+    }
+    if (audio_) {
+        audio_->shutdown();
+        audio_.reset();
     }
     if (character_) {
         character_->shutdown();
@@ -108,20 +115,29 @@ void Application::processEvents() {
     }
 
     if (input_->keyPressed(Key::Escape)) {
-        running_ = false;
+        onEscapePressed();
     }
-    if (input_->keyPressed(Key::F1)) {
+    if (gameplayActive_ && input_->keyPressed(Key::F1)) {
         freeCameraMode_ = !freeCameraMode_;
         camera_.setMode(freeCameraMode_ ? CameraMode::Free : CameraMode::ThirdPerson);
         NU_LOG_INFO("Camera mode: {}", freeCameraMode_ ? "Free" : "ThirdPerson");
     }
-    if (input_->keyPressed(Key::Tab)) {
+    if (gameplayActive_ && input_->keyPressed(Key::Tab)) {
         input_->setRelativeMouse(!input_->relativeMouse());
     }
 }
 
+void Application::onEscapePressed() {
+    requestQuit();
+}
+
 void Application::onFixedUpdate(float dt) {
     physics_->update(dt);
+
+    if (!gameplayActive_) {
+        camera_.update();
+        return;
+    }
 
     const Vec2 move = input_->moveAxis();
     const Vec2 look = input_->lookAxis();
@@ -147,14 +163,19 @@ void Application::onFixedUpdate(float dt) {
         const Vec3 flatForward = glm::normalize(Vec3{forward.x, 0.0f, forward.z});
         const Vec3 flatRight = glm::normalize(glm::cross(flatForward, Vec3{0, 1, 0}));
         const Vec3 wish = flatRight * move.x + flatForward * move.y;
-        character_->update(dt, wish, input_->keyPressed(Key::Space));
+        // Jump removed for Nine Under (grounded melee fantasy).
+        character_->update(dt, wish, false);
         camera_.setTarget(character_->position());
     }
 
     camera_.update();
 }
 
-void Application::onVariableUpdate(float) {}
+void Application::onVariableUpdate(float) {
+    if (audio_) {
+        audio_->update();
+    }
+}
 
 void Application::onRender(float) {
     RenderScene scene;
@@ -169,6 +190,7 @@ void Application::onRender(float) {
     const Vec3 p = character_->position();
     ImGui::Text("Player: %.2f %.2f %.2f", p.x, p.y, p.z);
     ImGui::Text("On ground: %s", character_->onGround() ? "yes" : "no");
+    ImGui::TextUnformatted("WASD move | Mouse look (no jump)");
     ImGui::End();
 
     renderer_->endFrame([this](VkCommandBuffer cmd) { imgui_->endFrame(cmd); });

@@ -119,14 +119,7 @@ foreach ($rel in $blendScripts) {
 # Sample / practice prop
 # ---------------------------------------------------------------------------
 Write-Host ""
-Write-Host "Ensuring sample prop exists ..." -ForegroundColor Cyan
-$sample = Join-Path $Root "assets\models\prop\prop_ruin_block_a.glb"
-if (-not (Test-Path $sample)) {
-    nu-content make-primitive prop_ruin_block_a --category prop --size 1.0
-} else {
-    Write-Host "[ok] Sample GLB present: assets/models/prop/prop_ruin_block_a.glb"
-}
-
+Write-Host "Ensuring practice prop exists ..." -ForegroundColor Cyan
 $practiceToml = Join-Path $Root "assets\source\prop\prop_practice_cube\asset.toml"
 if (-not (Test-Path $practiceToml)) {
     Write-Host "Creating practice asset prop_practice_cube ..."

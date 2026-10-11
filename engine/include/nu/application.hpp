@@ -1,5 +1,6 @@
 #pragma once
 
+#include "nu/audio/audio_engine.hpp"
 #include "nu/core/time.hpp"
 #include "nu/platform/input.hpp"
 #include "nu/platform/window.hpp"
@@ -39,6 +40,10 @@ protected:
     virtual void onFixedUpdate(float dt);
     virtual void onVariableUpdate(float dt);
     virtual void onRender(float alpha);
+    /// Default: quit. Override for main-menu / pause flows.
+    virtual void onEscapePressed();
+
+    void requestQuit() { running_ = false; }
 
     Window& window() { return *window_; }
     Input& input() { return *input_; }
@@ -48,8 +53,11 @@ protected:
     SceneWorld& scene() { return *scene_; }
     Camera& camera() { return camera_; }
     ImGuiLayer& imgui() { return *imgui_; }
+    AudioEngine& audio() { return *audio_; }
 
     bool freeCameraMode_ = false;
+    /// When false, character/camera gameplay input is skipped (e.g. main menu).
+    bool gameplayActive_ = true;
 
 private:
     void initSystems();
@@ -66,6 +74,7 @@ private:
     std::unique_ptr<CharacterController> character_;
     std::unique_ptr<SceneWorld> scene_;
     std::unique_ptr<ImGuiLayer> imgui_;
+    std::unique_ptr<AudioEngine> audio_;
     Camera camera_;
     Clock clock_;
 };

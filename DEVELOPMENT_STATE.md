@@ -5,9 +5,9 @@ or when the tech / content footprint changes in a meaningful way.
 
 | Field | Value |
 |-------|--------|
-| **Game version** | `v0.1` |
-| **Codename / slice** | Tech foundation + Arena I graybox |
-| **Last updated** | 2026-10-09 |
+| **Game version** | `v0.1.1` |
+| **Codename / slice** | Foundation + Arena I sandbox (menu, Imp stub, urns) |
+| **Last updated** | 2026-10-11 |
 | **Primary platform** | Windows (MSVC / x64) |
 | **Engine** | Custom C++20 + Vulkan 1.3 (`nu_engine`) |
 | **Genre / camera** | Action-roguelite, third person |
@@ -20,13 +20,12 @@ Related docs: [`README.md`](README.md) (build), [`docs/ARCHITECTURE.md`](docs/AR
 
 ## One-line status
 
-**Runnable vertical slice:** window + Vulkan renderer + Jolt character movement
-in a graybox Arena I, with ImGui debug HUD. No combat, enemies, run loop, or
-shipping content yet.
+**Runnable sandbox:** main menu → Arena I graybox with walk (no jump), two urn
+props, immobile Imp + HP bar + death SFX test key. Still pre-combat Stage 0.
 
 ---
 
-## What works today (v0.1)
+## What works today (v0.1.1)
 
 ### Engine / tooling
 
@@ -35,17 +34,22 @@ shipping content yet.
 - SDL3 window/input (Vulkan feature enabled), fixed 60 Hz sim + variable render.
 - Vulkan 1.3 device/swapchain, dynamic rendering, mesh forward pass, fog/lighting hooks.
 - Shader pipeline: Slang sources → SPIR-V (`shaders/`, compile helper).
-- Jolt: physics world + `CharacterVirtual` capsule controller.
-- ImGui debug UI (volk-compatible overlay port for the Vulkan backend).
+- Jolt: physics world + `CharacterVirtual` capsule controller (no jump).
+- ImGui debug UI + simple Play/Quit main menu.
+- miniaudio: engine init + one-shot SFX with pitch.
 - Tracy / validation / asserts wired per preset.
-- Unit test harness (`doctest`) and a small asset-cooker stub.
+- Unit test harness (`doctest`) and asset cooker (`--validate`, meshopt, KTX2 dump).
+- Content pipeline CLI (`tools/content` / `nu-content`) + Blender/ComfyUI docs.
+- Textured `ModelAsset` path; `prop_ink_urn` instances load in Arena I.
 
 ### Gameplay / content
 
-- Playable graybox of **Arena I — The Grey Threshold** (platform, wall/gate
-  suggestion, ink-shore markers, ruin blocks, hazard pool placeholders).
-- Third-person orbit camera + free-cam toggle; WASD / mouse / jump.
-- No combat, AI, abilities, loot, meta-progression, or multi-arena flow.
+- Playable graybox of **Arena I — The Grey Threshold**.
+- Main menu → Play / Quit; Esc returns to menu from play.
+- Third-person orbit camera + free-cam toggle; WASD / mouse (no jump).
+- Immobile **Imp** (360 HP, HP bar, placeholder capsule); **F2** kill/respawn for SFX.
+- Two `prop_ink_urn` props placed in the arena.
+- No real combat, AI attacks, abilities, loot, or multi-arena flow yet.
 
 ### Lore / design docs
 
@@ -90,12 +94,11 @@ Hard rule: **engine never includes game.**
 
 ## Known gaps / limitations (honest)
 
-- Graybox only — no authored glTF environments or characters in-game yet.
-- PBR / glTF loaders are hooked but not driving the live Arena I scene.
-- Audio engine init exists; no gameplay audio / music.
+- Arena I is still mostly graybox; urn GLB may still be over triangle budget until Blender LODs land.
+- Imp is a non-attacking placeholder (no AI / damage dealing).
+- Characters / skinning / animation not wired in-game yet (stubs + docs only).
 - No shadows, post stack beyond basic fog/tonemap intent, or VFX.
-- No enemy, damage, or ability systems.
-- No save/run meta, menus, or pause flow.
+- No ability systems, inventory, or meta progression.
 - Hot-reload and full asset cooking are incomplete.
 
 ---
@@ -105,3 +108,4 @@ Hard rule: **engine never includes game.**
 | Version | State summary |
 |---------|----------------|
 | **v0.1** | Foundation: build/run on Windows, Vulkan graybox Arena I, character move + debug UI. |
+| **v0.1.1** | Menu, no jump, Imp stub + death SFX, urn props; removed `prop_ruin_block_a`. |

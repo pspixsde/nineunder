@@ -1,6 +1,6 @@
 {
   "name": "nine-under",
-  "version-string": "0.1.0",
+  "version-string": "0.1.1",
   "description": "Nine Under — 3D action-roguelite (custom C++ / Vulkan engine)",
   "dependencies": [
     {

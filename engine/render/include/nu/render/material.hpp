@@ -9,8 +9,8 @@ struct MaterialGpu {
     Vec4 baseColor{0.7f, 0.7f, 0.72f, 1.0f};
     float metallic = 0.0f;
     float roughness = 0.85f;
-    float pad0 = 0.0f;
-    float pad1 = 0.0f;
+    float useBaseColorMap = 0.0f; // 1 = sample baseColor texture
+    float useNormalMap = 0.0f;    // 1 = sample normal map
     Vec4 emissive{0.0f, 0.0f, 0.0f, 0.0f};
 };
 

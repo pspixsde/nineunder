@@ -17,6 +17,7 @@ struct CpuTexture {
 };
 
 [[nodiscard]] std::optional<CpuTexture> loadTextureCpu(const std::filesystem::path& path);
-[[nodiscard]] AllocatedImage uploadTexture(VulkanDevice& device, const CpuTexture& cpu);
+[[nodiscard]] AllocatedImage uploadTexture(VulkanDevice& device, const CpuTexture& cpu,
+                                           bool srgb = true);
 
 } // namespace nu

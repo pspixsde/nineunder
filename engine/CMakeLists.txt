@@ -24,6 +24,9 @@ set(NU_ENGINE_SOURCES
     assets/src/asset_registry.cpp
     assets/src/gltf_loader.cpp
     assets/src/texture_loader.cpp
+    assets/src/model_asset.cpp
+    assets/src/asset_hot_reload.cpp
+    assets/src/skinning.cpp
     # scene
     scene/src/world.cpp
     scene/src/transform.cpp

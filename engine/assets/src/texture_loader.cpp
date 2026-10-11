@@ -28,16 +28,16 @@ std::optional<CpuTexture> loadTextureCpu(const std::filesystem::path& path) {
     return tex;
 }
 
-AllocatedImage uploadTexture(VulkanDevice& device, const CpuTexture& cpu) {
+AllocatedImage uploadTexture(VulkanDevice& device, const CpuTexture& cpu, bool srgb) {
     const VkDeviceSize size = cpu.pixels.size();
     AllocatedBuffer staging =
         device.createBuffer(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_AUTO,
                             VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT);
     std::memcpy(staging.info.pMappedData, cpu.pixels.data(), static_cast<size_t>(size));
 
+    const VkFormat format = srgb ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM;
     AllocatedImage image =
-        device.createImage({static_cast<uint32_t>(cpu.width), static_cast<uint32_t>(cpu.height), 1},
-                           VK_FORMAT_R8G8B8A8_SRGB,
+        device.createImage({static_cast<uint32_t>(cpu.width), static_cast<uint32_t>(cpu.height), 1}, format,
                            VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 
     device.immediateSubmit([&](VkCommandBuffer cmd) {

@@ -12,6 +12,7 @@ struct Vertex {
     Vec3 normal;
     Vec2 uv;
     Vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
+    Vec4 tangent{1.0f, 0.0f, 0.0f, 1.0f}; // xyz + handedness (MikkTSpace)
 };
 
 struct GpuMesh {

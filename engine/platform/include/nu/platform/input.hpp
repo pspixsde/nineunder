@@ -44,8 +44,12 @@ public:
     void handleEvent(const SDL_Event& event);
 
     [[nodiscard]] bool keyDown(Key key) const;
+    /// Rising edge latched until `clearPressedLatches()` (survives frames with no fixed step).
     [[nodiscard]] bool keyPressed(Key key) const;
+    /// Same as keyPressed, but clears the latch for that key.
+    [[nodiscard]] bool consumeKeyPressed(Key key);
     [[nodiscard]] bool keyReleased(Key key) const;
+    void clearPressedLatches();
 
     [[nodiscard]] bool mouseDown(MouseButton button) const;
     [[nodiscard]] bool mousePressed(MouseButton button) const;
@@ -70,6 +74,7 @@ private:
 
     std::array<bool, static_cast<size_t>(Key::Count)> keys_{};
     std::array<bool, static_cast<size_t>(Key::Count)> keysPrev_{};
+    std::array<bool, static_cast<size_t>(Key::Count)> pressedLatch_{};
     std::array<bool, static_cast<size_t>(MouseButton::Count)> mouse_{};
     std::array<bool, static_cast<size_t>(MouseButton::Count)> mousePrev_{};
 

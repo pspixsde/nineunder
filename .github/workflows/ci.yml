@@ -6,12 +6,22 @@ on:
   pull_request:
     branches: [main, master]
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  VCPKG_DEFAULT_TRIPLET: x64-windows
+  # Keep the tool checkout aligned with vcpkg-configuration.json baseline.
+  VCPKG_COMMIT: 4056a718039dc20216cccb960bccce4b9ad69519
+
 jobs:
   windows:
     name: Windows MSVC
     runs-on: windows-latest
     env:
-      VCPKG_DEFAULT_TRIPLET: x64-windows
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/vcpkg-binary-cache,readwrite
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,7 +32,14 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Install Ninja
-        run: choco install ninja -y
+        shell: pwsh
+        run: |
+          $dir = Join-Path $env:GITHUB_WORKSPACE "tools\ninja"
+          $zip = Join-Path $env:RUNNER_TEMP "ninja-win.zip"
+          Invoke-WebRequest -Uri "https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-win.zip" -OutFile $zip
+          New-Item -ItemType Directory -Force -Path $dir | Out-Null
+          Expand-Archive -Path $zip -DestinationPath $dir -Force
+          Add-Content -Path $env:GITHUB_PATH -Value $dir
 
       - name: Setup Vulkan SDK
         uses: humbletim/install-vulkan-sdk@v1.2
@@ -30,29 +47,38 @@ jobs:
           version: 1.3.296.0
           cache: true
 
-      - name: Clone vcpkg
+      - name: Cache vcpkg binary packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/vcpkg-binary-cache
+          key: vcpkg-bin-${{ runner.os }}-${{ env.VCPKG_DEFAULT_TRIPLET }}-${{ env.VCPKG_COMMIT }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-overlays/**') }}
+          restore-keys: |
+            vcpkg-bin-${{ runner.os }}-${{ env.VCPKG_DEFAULT_TRIPLET }}-${{ env.VCPKG_COMMIT }}-
+            vcpkg-bin-${{ runner.os }}-${{ env.VCPKG_DEFAULT_TRIPLET }}-
+
+      - name: Setup vcpkg
+        shell: pwsh
         run: |
-          git clone --depth 1 https://github.com/microsoft/vcpkg.git ${{ github.workspace }}/vcpkg
-          ${{ github.workspace }}/vcpkg/bootstrap-vcpkg.bat
-          echo "VCPKG_ROOT=${{ github.workspace }}/vcpkg" >> $env:GITHUB_ENV
+          New-Item -ItemType Directory -Force -Path "$env:GITHUB_WORKSPACE\vcpkg-binary-cache" | Out-Null
+          $root = "$env:GITHUB_WORKSPACE\vcpkg"
+          New-Item -ItemType Directory -Force -Path $root | Out-Null
+          if (-not (Test-Path "$root\.git")) {
+            git -C $root init
+            git -C $root remote add origin https://github.com/microsoft/vcpkg.git
+          }
+          git -C $root fetch --depth 1 origin $env:VCPKG_COMMIT
+          git -C $root checkout --force FETCH_HEAD
+          & "$root\bootstrap-vcpkg.bat" -disableMetrics
 
       - name: Configure (dev)
         run: cmake --preset dev
-        env:
-          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
 
       - name: Build
         run: cmake --build --preset dev --parallel
-        env:
-          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
 
       - name: Test
         run: ctest --preset dev --output-on-failure
-        env:
-          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
 
       - name: Validate cooked sample prop (cooker)
         run: |
           .\build\dev\tools\nu_asset_cooker.exe assets\models\prop\prop_practice_cube.glb --validate --tris-max 5000
-        env:
-          VCPKG_ROOT: ${{ github.workspace }}/vcpkg

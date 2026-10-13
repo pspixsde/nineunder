@@ -17,13 +17,13 @@ Stand up a custom engine and prove the stack: window, Vulkan rendering, physics
 character, one graybox arena, debug UI, reproducible Windows build.  
 **Exit:** a developer can build and walk around Arena I in third person.
 
-### ▶ Stage 1 — Core combat & character fantasy — *current (v0.4)*
+### ▶ Stage 1 — Core combat & character fantasy — *current (v0.6)*
 
 Make the player *feel* like a Pit fighter: attacks, damage, death/respawn rules
 for a run, one playable character fantasy implemented (kit + feedback), camera
 and controls locked to a fun third-person combat read.  
 **Exit:** a short fight encounter is fun without graybox excuses.  
-*(v0.4: full Q/E/R/F kit + settings. Still graybox; feel/telegraphs/art remain.)*
+*(v0.6: map editor + skill effects + ink slow. Still graybox.)*
 
 ### Stage 2 — First arena is a game
 
@@ -70,7 +70,6 @@ store/page readiness, final balance.
 
 
 
-- Update gpu drivers: "Your NVIDIA driver (561.00) may be too old for the bundled PyTorch. Recommended minimum: 580. Please consider updating your NVIDIA drivers if you run into issues."
 - add 3 characters
 - add a skill tree with major and minor skills
 - add an inventory with 9 items 3 of which are active
@@ -81,6 +80,8 @@ store/page readiness, final balance.
 - Tuning pass: fire interval, reload, projectile speed, Imp HP/hitbox feel
 - add items
 
+
+
 ---
 
 
@@ -90,34 +91,29 @@ store/page readiness, final balance.
 
 | Label               | Content                                                                                         |
 | ------------------- | ----------------------------------------------------------------------------------------------- |
-| **Current version** | `v0.4.0`                                                                                        |
-| **Next version**    | `v0.5` *(proposed — Stage 1 feel / readability)*                                                |
-| **Intent**          | Make the Imp fight readable and punchy without leaving graybox.                                 |
+| **Current version** | `v0.6.0`                                                                                        |
+| **Next version**    | `v0.7` *(proposed — deepen Arena I rules)*                                                      |
+| **Intent**          | Push Stage 1→2: clearer win/lose and encounter structure without leaving graybox.               |
 
 
 > Hybrid workspace: the agent proposes/updates this block when versions move;
 > you edit and approve. When locked, this section feeds the next update plan.
 
 
-### Proposed scope for `v0.4` → `v0.5`
+### Proposed scope for `v0.6` → `v0.7`
 
-- make the imp model briefly flash yellow in order to indicate that it's about to attack
-- in drafts folder there is "imp_windup.wav" - use it as the windup sound before it attacks. randomize pitch to avoid monotonous sounds 
-- Light combat feel: hitstop or camera nudge on melee / fireball / ult hits
-- remove the unlimited ammo feature from the barrier ability
-- Tuning pass: create an md document with all current balance and numeric values (cooldowns, damage, ability effects, buffs, debuffs, etc.) along with suggested changes by the agent. It's going to be a hybrid workspace heavily maintained by the owner and implemented only if requested. The aim is to finetune the conceptual parts of the game and balance it for more enjoyable gameplay.
-- all abilities and perhaps the base attacks in the game work inconsistently. An ability while not on cooldown might not trigger even after pressing it 5 times. This might be tied to the simultaneous movement in the process hintering the flow, but from what I saw sometimes even when you stay perfectly still and try to press an ability, it takes many presses to make it work. Investigate this issue and fix it. Let's tighten all processes that are involved in the flow of the game - everything needs to run smoothly
-- scale HUD elements up. they are too small even on a big monitor. add a setting in general tab where you can scale it up or down (good example: Minecraft)
-- burn ticks from ulti hits and second ability scorched ground happen way too much. floating numbers show many 1s dropping like a waterfall - fine tune that and make the burn effect ticks slower 
-- below all abilities show which key is bind to them for clarity. ability 1 should be Q, ability 2 should be SHIFT, 3 should be E, ulti should be SPACEBAR.
-- add the possibility to reload even when you are not completely out of ammo (similar to shooter games) - use R key for that
-- move "Nine Under - Arena I" helper box to the right upper corner. in the freed up corner let's place 2 boxes showing the currency player currently has. The currencies will be called "Nox" and "Pure Nox". Killing an imp gives you one Nox. For now let's make it so that as soon as you kill one, you get it. Below those boxes place an icon to open the skill tree. below the icon also show the key bind that opens it - it will be TAB (unbind it from the current "show mouse" feature and use something else for it). Skill tree will have 2 kinds of skills: Minor and Major ones. to power up minor ones Noxes will be used, for major ones - Pure Noxes. For now put 2 skills as placeholders that don't do anything.
+*(Draft — edit freely. Not approved yet.)*
+
+- Win condition beyond next-level stub (clear Imps / open gate beat)
+- Imp respawn / wave stub for sustained fights
+- Rebuild ruin physics when leaving map editor
+- Pure Nox economy design (replace +1-per-kill stub)
 
 
 
-### Out of scope for `v0.5` (parked)
+### Out of scope for `v0.7` (parked)
 
-- Full enemy AI packs / multi-enemy encounters  
+- Full enemy AI packs / multi-enemy encounter design pass  
 - Multi-arena run loop / meta progression  
 - Final art pass or narrative scripting for Vareth
 
@@ -125,10 +121,10 @@ store/page readiness, final balance.
 
 ### Approval
 
-- [x] Scope edited / accepted by owner  
-- [x] Ready to turn into an implementation plan  
+- [ ] Scope edited / accepted by owner  
+- [ ] Ready to turn into an implementation plan  
 
 ---
 
 *When the next version ships: move delivered items into* `CHANGELOG.md`*, update*
-`DEVELOPMENT_STATE.md`*, and replace this section with the following hop.*
+`DEVELOPMENT_STATE.md`, and replace this section with the following hop.*

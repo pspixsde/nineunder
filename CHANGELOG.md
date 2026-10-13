@@ -6,6 +6,56 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-10-12
+
+### Added
+
+- Visual skill tree (Start → two Minors → two Majors) with real effects:
+  - Minor 1 (2 Nox): dash follows move input direction
+  - Minor 2 (2 Nox): barrier expiry instantly refills ammo
+  - Major 1 (5 Pure Nox): +50% move speed for 2s after dash
+  - Major 2 (5 Pure Nox): barrier expiry nova (50 dmg + knockback)
+- Map Editor (main menu): free cam, place/move Imps / ink pools / ruins, compulsory Spawn + Next Level markers, Imp aggro rings; saves `assets/maps/arena_i.json`
+- Next Level marker returns to main menu on touch
+- Ink pools slow the player by 50% while standing in them
+- GUI scale setting (menus + HUD); replaces HUD-only scale
+
+### Changed
+
+- Arena walkable area expanded (larger floor / wall pushed back)
+- Imp `!` stays while aggroed; any damage aggroes even outside radius
+- Skill tree opens paused (no camera look); Imp kills grant +1 Nox and +1 Pure Nox (stub)
+
+### Removed
+
+- Upper-right Arena I helper panel
+- **F1** free-cam and **F2** mouse-toggle binds from gameplay
+
+## [0.5.0] — 2026-10-12
+
+### Added
+
+- Imp attack telegraph: yellow flash + `imp_windup.wav` (randomized pitch) before spit.
+- Light combat feel: brief hitstop + camera pitch nudge on melee / fireball / ult hits.
+- HUD scale slider (General settings); default scale 1.5.
+- Keybind labels under ability slots (**Q** / **SHIFT** / **E** / **SPACE**).
+- Manual reload with **R** (mid-clip, shooter-style).
+- Currencies: **Nox** (+1 on Imp kill) and **Pure Nox** (stub); top-left HUD boxes.
+- Skill tree overlay (**TAB**): placeholder Minor / Major skills (no effects yet).
+- `BALANCE.md` hybrid tuning workspace (current numbers + suggested changes).
+
+### Changed
+
+- Ability binds: melee **Q**, scorched dash **Shift**, barrier **E**, ult **Space** (was Q/E/R/F).
+- Show-mouse toggle moved from **Tab** to **F2**.
+- Helper panel moved to upper-right; currencies / skill-tree entry occupy upper-left.
+- Burn and scorch DoT floating numbers tick every 0.5s instead of ~0.1s chunks.
+- Input: key press latches survive frames with no fixed step (fixes missed ability presses).
+
+### Removed
+
+- Molten barrier no longer grants unlimited ammo / skips reload while active.
+
 ## [0.4.0] — 2026-10-11
 
 ### Added

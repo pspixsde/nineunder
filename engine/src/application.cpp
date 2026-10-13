@@ -118,16 +118,8 @@ void Application::processEvents() {
         }
     }
 
-    if (input_->keyPressed(Key::Escape)) {
+    if (input_->consumeKeyPressed(Key::Escape)) {
         onEscapePressed();
-    }
-    if (gameplayActive_ && input_->keyPressed(Key::F1)) {
-        freeCameraMode_ = !freeCameraMode_;
-        camera_.setMode(freeCameraMode_ ? CameraMode::Free : CameraMode::ThirdPerson);
-        NU_LOG_INFO("Camera mode: {}", freeCameraMode_ ? "Free" : "ThirdPerson");
-    }
-    if (gameplayActive_ && input_->keyPressed(Key::Tab)) {
-        input_->setRelativeMouse(!input_->relativeMouse());
     }
 }
 
@@ -147,7 +139,10 @@ void Application::onFixedUpdate(float dt) {
     const Vec2 look = input_->lookAxis();
 
     if (freeCameraMode_) {
-        camera_.addYawPitch(look.x, -look.y);
+        // Relative mouse (gameplay free-cam) or RMB-drag when the cursor is visible (map editor).
+        if (input_->relativeMouse() || input_->mouseDown(MouseButton::Right)) {
+            camera_.addYawPitch(look.x, -look.y);
+        }
         Vec3 local{0.0f, 0.0f, 0.0f};
         local.z += move.y;
         local.x += move.x;
@@ -225,6 +220,10 @@ int Application::run() {
             onFixedUpdate(kFixedDt);
             accumulator -= kFixedDt;
             ++steps;
+        }
+        // Drop latches only after a sim step consumed them; otherwise edges survive short frames.
+        if (steps > 0) {
+            input_->clearPressedLatches();
         }
 
         onVariableUpdate(frameDt);

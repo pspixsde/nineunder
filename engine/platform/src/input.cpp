@@ -32,7 +32,15 @@ void Input::handleEvent(const SDL_Event& event) {
         const Key key = mapScancode(event.key.scancode);
         const int idx = keyIndex(key);
         if (idx > 0) {
-            keys_[static_cast<size_t>(idx)] = event.type == SDL_EVENT_KEY_DOWN;
+            const auto i = static_cast<size_t>(idx);
+            if (event.type == SDL_EVENT_KEY_DOWN) {
+                if (!event.key.repeat && !keys_[i]) {
+                    pressedLatch_[i] = true;
+                }
+                keys_[i] = true;
+            } else {
+                keys_[i] = false;
+            }
         }
         break;
     }
@@ -80,7 +88,21 @@ bool Input::keyDown(Key key) const {
 
 bool Input::keyPressed(Key key) const {
     const int i = keyIndex(key);
-    return keys_[static_cast<size_t>(i)] && !keysPrev_[static_cast<size_t>(i)];
+    return pressedLatch_[static_cast<size_t>(i)];
+}
+
+bool Input::consumeKeyPressed(Key key) {
+    const int i = keyIndex(key);
+    const auto idx = static_cast<size_t>(i);
+    if (!pressedLatch_[idx]) {
+        return false;
+    }
+    pressedLatch_[idx] = false;
+    return true;
+}
+
+void Input::clearPressedLatches() {
+    pressedLatch_.fill(false);
 }
 
 bool Input::keyReleased(Key key) const {

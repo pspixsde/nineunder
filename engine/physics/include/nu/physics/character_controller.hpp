@@ -27,6 +27,7 @@ public:
     void update(float dt, const Vec3& wishDir, bool jump);
 
     void setPosition(const Vec3& position);
+    void setMoveSpeedMultiplier(float multiplier);
 
     [[nodiscard]] Vec3 position() const;
     [[nodiscard]] Vec3 velocity() const;

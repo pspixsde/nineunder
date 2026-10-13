@@ -17,6 +17,7 @@ struct CharacterController::Impl {
     JPH::RefConst<JPH::Shape> standingShape;
     CharacterDesc desc{};
     Vec3 velocity{0.0f};
+    float speedMul = 1.0f;
 };
 
 struct SharedPhysics {
@@ -81,20 +82,21 @@ void CharacterController::update(float dt, const Vec3& wishDir, bool jump) {
         dir.z /= len;
     }
 
+    const float speed = impl_->desc.moveSpeed * std::clamp(impl_->speedMul, 0.05f, 3.0f);
+
     if (impl_->character && g_sharedPhysics.system && g_sharedPhysics.allocator) {
         const JPH::Vec3 joltWish(dir.x, 0.0f, dir.z);
         JPH::CharacterVirtual::ExtendedUpdateSettings updateSettings;
 
         JPH::Vec3 velocity = impl_->character->GetLinearVelocity();
         if (impl_->character->GetGroundState() == JPH::CharacterVirtual::EGroundState::OnGround) {
-            velocity = JPH::Vec3(joltWish.GetX() * impl_->desc.moveSpeed, 0.0f,
-                                 joltWish.GetZ() * impl_->desc.moveSpeed);
+            velocity = JPH::Vec3(joltWish.GetX() * speed, 0.0f, joltWish.GetZ() * speed);
             if (jump) {
                 velocity.SetY(impl_->desc.jumpSpeed);
             }
         } else {
-            velocity.SetX(joltWish.GetX() * impl_->desc.moveSpeed * 0.85f);
-            velocity.SetZ(joltWish.GetZ() * impl_->desc.moveSpeed * 0.85f);
+            velocity.SetX(joltWish.GetX() * speed * 0.85f);
+            velocity.SetZ(joltWish.GetZ() * speed * 0.85f);
             velocity += g_sharedPhysics.system->GetGravity() * dt;
         }
         impl_->character->SetLinearVelocity(velocity);
@@ -110,8 +112,8 @@ void CharacterController::update(float dt, const Vec3& wishDir, bool jump) {
     }
 
     // Kinematic fallback.
-    impl_->velocity.x = dir.x * impl_->desc.moveSpeed;
-    impl_->velocity.z = dir.z * impl_->desc.moveSpeed;
+    impl_->velocity.x = dir.x * speed;
+    impl_->velocity.z = dir.z * speed;
     impl_->velocity.y -= 18.0f * dt;
     if (jump && onGround()) {
         impl_->velocity.y = impl_->desc.jumpSpeed;
@@ -130,6 +132,10 @@ void CharacterController::setPosition(const Vec3& position) {
         impl_->character->SetPosition(JPH::RVec3(position.x, position.y, position.z));
         impl_->character->SetLinearVelocity(JPH::Vec3::sZero());
     }
+}
+
+void CharacterController::setMoveSpeedMultiplier(float multiplier) {
+    impl_->speedMul = multiplier;
 }
 
 Vec3 CharacterController::position() const {

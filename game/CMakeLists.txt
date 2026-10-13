@@ -2,6 +2,7 @@ add_executable(NineUnder
     src/main.cpp
     src/game_app.cpp
     src/arena_greybox.cpp
+    src/map_data.cpp
 )
 
 target_include_directories(NineUnder PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
